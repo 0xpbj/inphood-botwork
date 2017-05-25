@@ -1,0 +1,23 @@
+{
+  "name": "chatbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create": "claudia create --region us-east-1 --api-module bot --profile claudia",
+    "update": "claudia update --profile claudia"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "claudia": "^2.12.1"
+  },
+  "dependencies": {
+    "claudia-bot-builder": "^2.15.0",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
+    "tesseract.js": "^1.0.10"
+  }
+}
