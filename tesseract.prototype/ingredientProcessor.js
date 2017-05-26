@@ -64,8 +64,54 @@ const sugarNames = [
   'galactose'
 ]
 
+// Iterate over all of the sugar names getting a levenshtein distance for each one
+// compared to anIngredient. Return the closest matching one.
+//
+function getSugar(anIngredient) {
+  const levThreshold = 2
+  let minLev = levThreshold
+  let matchingSugar = ''
+
+  for (let sugarName of sugarNames) {
+    let lev = levenshtein.get(anIngredient, sugarName)
+
+    if (lev <= minLev) {
+      minLev = lev
+      matchingSugar = sugarName
+    }
+  }
+
+  return matchingSugar
+}
+
 function processText(text) {
-  console.log(text)
+  // Crappy attempt #1:
+  //  1. lowercase text
+  let lcText = text //text.toLowerCase()
+
+  //  2. stip out linefeeds, _, ~, = (and any other bizarre stuff we observe OCR injecting/recognizing)
+  let strippedText = lcText.replace(/[\n_~=]/g, '')
+
+  //  3. stip out anything up to 'ingredients: ' if found
+  let remainingText = strippedText.replace(/.*ingredients:/i, '')
+
+  //  4. switch out '(' ')' for ','
+  let comma4parenText = remainingText.replace(/[()]/g, ',')
+
+  //  5. split on ',' to array of ingredients
+  let ingredientsText = comma4parenText.split(',')
+
+  //  6. trim spaces/whitespace from edges of ingredients
+  //  7. measure the levenshtein distance of each sugarName to the current ingredient
+  //     and select the highest scoring one above a threshold (i.e. lev distance < 4)
+  //
+  for (let ingredient of ingredientsText) {
+    const lcTrimmedIngredient = ingredient.toLowerCase().trim()
+    const sugar = getSugar(lcTrimmedIngredient)
+    if (sugar !== '') {
+      console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')
+    }
+  }
 }
 
 http.createServer(function (request, response) {
@@ -93,7 +139,7 @@ http.createServer(function (request, response) {
                       'ingredients.all-sugars.jpg']
 
   for (let testImageFile of testImages) {
-    console.log('Processing ', testImageFile, ' --------------------------------')
+    console.log('Queuing ', testImageFile, ':')
     var jpegFromDisk = fs.readFileSync(testImageFile)
 
     Tesseract.recognize(jpegFromDisk)
@@ -104,7 +150,9 @@ http.createServer(function (request, response) {
       // console.log('Result: ', result)
       // console.log('')
       let text = ''
-      console.log('Paragraphs in ', testImageFile, ' --------------------------------')
+      console.log('')
+      console.log('Sugars found in ', testImageFile, ':')
+      console.log('-------------------------------------------------------------')
       for (let paragraph of result.paragraphs) {
         text += paragraph.text
       }
