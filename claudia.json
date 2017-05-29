@@ -1,11 +1,11 @@
 {
   "lambda": {
-    "role": "chatbot-executor",
-    "name": "chatbot",
-    "region": "us-east-1"
+    "role": "sugarbot-executor",
+    "name": "sugarbot",
+    "region": "us-west-2"
   },
   "api": {
-    "id": "5ueza1gjug",
+    "id": "vaoqxwkwqa",
     "module": "bot"
   }
 }
