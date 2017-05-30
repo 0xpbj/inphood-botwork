@@ -508,12 +508,11 @@ function processLabelImage(url) {
     return request(gaOptions)
     .then(responses => {
       console.log('Responses:', responses);
-      if (detections && fDetections) {
-        const detections = responses[0].textAnnotations;
-        console.log('Text:');
-        detections.forEach((text) => console.log(text));
-        const fDetections = responses[0].fullTextAnnotation
-        console.log('Full Text: ', fDetections)
+      const {textAnnotations, fullTextAnnotation} = responses.responses[0];
+      console.log('Text:', textAnnotations);
+      console.log('Full Text: ', fullTextAnnotation)
+      if (textAnnotations && fullTextAnnotation) {
+        textAnnotations.forEach((text) => console.log(text));
         return [
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(500).get(),
@@ -533,6 +532,12 @@ function processLabelImage(url) {
     console.log('Error: ' + err)
   })
 }
+
+// { 
+//   responses: [ 
+//     { textAnnotations: [Object], fullTextAnnotation: [Object] } 
+//   ] 
+// }
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   // console.log('Request', request)
