@@ -471,23 +471,63 @@ function otherOptions() {
 let processLabelImageFlag = false
 let processLabelImageProg = false
 function processLabelImage(url) {
-  var options = {
-    method: 'POST',
-    uri: 'http://52.38.174.186:3030',
-    body: {
-      url: url
-    },
-    json: true
+  let encoding = 'base64'
+  var fbOptions = {
+    encoding: encoding,
+    uri: url,
+    method: 'GET',
+    gzip: true,
+    json: false,
+    resolveWithFullResponse: true,
+    headers: {Authorization: "Bearer 'EAAJhTtF5K30BAFiGHlJz4Pvp2ZAxo9eAcyYyfd4GYAg0rYBP5lMrTWwg7z7UoNsezXNDR7wysqzHHIWTeS5LHNjfYhvJQ728t2uRHZAkCtypwceLDgl1Ixfr9KMPxFqQGX1PNOaJYZB7JR0WTfL3ZBaYKH6pR1IcRGO3GTuWVAZDZD'"}
   }
+  console.log('URL processing', url)
   const request = require('request-promise')
-  return request(options)
-  .then(response => {
-    return [
-      new fbTemplate.ChatAction('typing_on').get(),
-      new fbTemplate.Pause(500).get(),
-      response.data,
-      // startMessage(false)
-    ]
+  return request(fbOptions)
+  .then(result => {
+    console.log('Image buffer', result.body)
+    var gaOptions = {
+      method: 'POST',
+      uri: 'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
+      body: {
+        "requests": [
+          {
+            "image": {
+               "content": result.body
+            },
+            "features": [
+              {
+                "type": "TEXT_DETECTION"
+              }
+            ]
+          }
+        ]
+      },
+      json: true
+    }
+    return request(gaOptions)
+    .then(responses => {
+      console.log('Responses:', responses);
+      if (detections && fDetections) {
+        const detections = responses[0].textAnnotations;
+        console.log('Text:');
+        detections.forEach((text) => console.log(text));
+        const fDetections = responses[0].fullTextAnnotation
+        console.log('Full Text: ', fDetections)
+        return [
+          new fbTemplate.ChatAction('typing_on').get(),
+          new fbTemplate.Pause(500).get(),
+          'Results received'
+        ]
+      }
+      else {
+        return [
+          new fbTemplate.ChatAction('typing_on').get(),
+          new fbTemplate.Pause(500).get(),
+          'No sugar found!'
+        ]
+      }
+    })
   })
   .catch(err => {
     console.log('Error: ' + err)
@@ -495,9 +535,9 @@ function processLabelImage(url) {
 }
 
 module.exports = botBuilder(function (request, originalApiRequest) {
-  console.log('Request', request)
-  console.log('Text', request.text)
-  console.log('Original Request', request.originalRequest)
+  // console.log('Request', request)
+  // console.log('Text', request.text)
+  // console.log('Original Request', request.originalRequest)
   if (request.type === 'facebook') {
     var messageText = request.text.toLowerCase()
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
@@ -507,7 +547,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     }
     else if (messageText) {
       sugarCheckerFlag = false
-      processLabelImageFlag = false
       switch (messageText) {
         case 'send nutrition label': {
           processLabelImageFlag = true
@@ -546,7 +585,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       processLabelImageFlag = false
       processLabelImageProg = true
       const {url} = messageAttachments[0].payload
-      console.log('Image being processed', url)
       return processLabelImage(url)
     }
     else if (processLabelImageProg) {
