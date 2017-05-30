@@ -2,6 +2,8 @@
 const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 
+// import {sugarNames, getSugarFact} from './SugarConstants'
+
 const sugarNames = [
   'sugar',
   'sucrose',
@@ -407,12 +409,14 @@ function randomSugarFacts() {
     new fbTemplate.Pause(500).get(),
     data.fact,
     data.source,
-    startMessage(false)
+    // startMessage(false)
   ]
 }
 
 function sugarTypes() {
   return [
+    new fbTemplate.ChatAction('typing_on').get(),
+    new fbTemplate.Pause(500).get(),
     new fbTemplate.List()
       .addBubble('Sucrose', 'Also known as white sugar or table sugar')
         .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/sugar.jpg')
@@ -425,14 +429,39 @@ function sugarTypes() {
         .addDefaultAction('https://en.wikipedia.org/wiki/Agave_nectar')
       .addListButton('See Complete Sugar list', 'https://en.wikipedia.org/wiki/List_of_sugars')
       .get(),
-    startMessage(false)
+    // startMessage(false)
   ]
 }
 
+let sugarCheckerFlag = false
+function sugarChecker(messageText) {
+  if (sugarNames.indexOf(messageText) > -1) {
+    return [
+      `That's a sugar!`,
+      // startMessage(false)
+    ]
+  }
+  else {
+    return [
+      `That's not a sugar!`,
+      // startMessage(false)
+    ]
+  }
+}
+
 function startMessage(flag) {
-  const text = flag ? 'Welcome to SugarBot! What would you like to do?' : 'What would you like to do next?'
-  return new fbTemplate.Text(text)
-    .addQuickReply('Ingredient Label Image', 'Ingredient Label Image')
+  const text = flag ? 'Welcome to inPhood SugarBot! What would you like to do?' : 'What would you like to do next?'
+  return new fbTemplate.Generic()
+    .addBubble('inPhood SugarBot', text)
+      .addUrl('https://inphood.com')
+      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/home.jpg')
+      .addButton('Send a photo', 'send nutrition label')
+      .addButton('Other Options', 'other options')
+    .get();
+}
+
+function otherOptions() {
+  return new fbTemplate.Text('Here are your options.')
     .addQuickReply('Random Sugar Facts', 'Random Sugar Facts')
     .addQuickReply('Not Sugar?', 'Not Sugar?')
     .addQuickReply('Sugar Types', 'Sugar Types')
@@ -440,8 +469,8 @@ function startMessage(flag) {
 }
 
 let processLabelImageFlag = false
+let processLabelImageProg = false
 function processLabelImage(url) {
-  // console.log('Processing URL: ', url)
   var options = {
     method: 'POST',
     uri: 'http://52.38.174.186:3030',
@@ -457,7 +486,7 @@ function processLabelImage(url) {
       new fbTemplate.ChatAction('typing_on').get(),
       new fbTemplate.Pause(500).get(),
       response.data,
-      startMessage(false)
+      // startMessage(false)
     ]
   })
   .catch(err => {
@@ -465,82 +494,69 @@ function processLabelImage(url) {
   })
 }
 
-let sugarCheckerFlag = false
-function sugarChecker(messageText) {
-  if (sugarNames.indexOf(messageText) > -1) {
-    return [
-      `That's a sugar!`,
-      startMessage(false)
-    ]
-  }
-  else {
-    return [
-      `That's not a sugar!`,
-      startMessage(false)
-    ]
-  }
-}
-
 module.exports = botBuilder(function (request, originalApiRequest) {
-  //console.log('WORK!', request)
+  console.log('Request', request)
+  console.log('Text', request.text)
+  console.log('Original Request', request.originalRequest)
   if (request.type === 'facebook') {
-    //console.log ('1')
     var messageText = request.text.toLowerCase()
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (sugarCheckerFlag && messageText) {
-      //console.log ('2')
       sugarCheckerFlag = false
       return sugarChecker(messageText)
     }
     else if (messageText) {
-      // console.log('Message Text', messageText)
-      //console.log ('3')
       sugarCheckerFlag = false
       processLabelImageFlag = false
       switch (messageText) {
-        case 'ingredient label image': {
+        case 'send nutrition label': {
           processLabelImageFlag = true
-          return `Ok, please send me a picture of the ingredient label`
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(500).get(),
+            `Ok, please send me a picture of the nutrition label`
+          ]
         }
         case 'another random sugar fact':
         case 'random sugar facts': {
-          // console.log ('5')
           return randomSugarFacts()
         }
         case 'try another sugar?':
         case 'not sugar?':
         {
-          // console.log ('6')
           sugarCheckerFlag = true
-          return `Ok, please send me the ingredient name.`
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(500).get(),
+            `Ok, please send me the ingredient name.`
+          ]
         }
         case 'sugar types': {
-          // console.log ('7')
           return sugarTypes()
         }
+        case 'other options': {
+          return otherOptions()
+        }
         default: {
-          // console.log ('9')
           return startMessage(true)
         }
       }
     }
     else if (processLabelImageFlag && messageAttachments) {
-      //console.log ('10')
       processLabelImageFlag = false
+      processLabelImageProg = true
       const {url} = messageAttachments[0].payload
+      console.log('Image being processed', url)
       return processLabelImage(url)
-      // [
-        // new fbTemplate.ChatAction('typing_on').get(),
-        // new fbTemplate.Pause(500).get(),
-        // 'Processing Image...',
-        // processLabelImage(url)
-      // ]
     }
-    else {
+    else if (processLabelImageProg) {
+      processLabelImageProg = false
       return [
-        'Here are the valid options',
-        startMessage(false)
+        new fbTemplate.ChatAction('typing_on').get(),
+        new fbTemplate.Pause(500).get(),
+        "Processing label. Here's a random nutrition fact while you wait",
+        randomSugarFacts()
       ]
     }
   }
-}, { platforms: ['facebook', 'twilio', 'alexa'] });
+}, { platforms: ['facebook'] });
