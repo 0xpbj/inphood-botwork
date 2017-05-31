@@ -1,70 +1,9 @@
 // bot.js
 const botBuilder = require('claudia-bot-builder');
+const ocrUtils = require('./ocrUtils.js')
 const fbTemplate = botBuilder.fbTemplate;
 
 // import {sugarNames, getSugarFact} from './SugarConstants'
-
-const sugarNames = [
-  'sugar',
-  'sucrose',
-  'high-fructose corn syrup',
-  'hfcs',
-  'agave nectar',
-  'beet sugar',
-  'blackstrap molasses',
-  'brown sugar',
-  'buttered syrup',
-  'cane juice crystals',
-  'cane sugar',
-  'caramel',
-  'carob syrup',
-  'castor sugar',
-  'coconut sugar',
-  'confectioner\'s sugar',
-  'powdered sugar',
-  'date sugar',
-  'demarara sugar',
-  'evaporated cane juice',
-  'florida crystals',
-  'fruit juice',
-  'fruit juice concentrate',
-  'golden sugar',
-  'golden syrup',
-  'grape sugar',
-  'honey',
-  'icing sugar',
-  'invert sugar',
-  'maple syrup',
-  'molasses',
-  'muscovado sugar',
-  'panela sugar',
-  'raw sugar',
-  'refiner\'s syrup',
-  'sorghum syrup',
-  'sucanat',
-  'treacle sugar',
-  'turbinado sugar',
-  'yellow sugar',
-  'barley malt',
-  'brown rice syrup',
-  'corn syrup',
-  'corn syrup solids',
-  'dextrin',
-  'dextrose',
-  'diastatic malt',
-  'ethyl maltol',
-  'glucose',
-  'glucose solids',
-  'lactose',
-  'malt syrup',
-  'maltodextrin',
-  'maltose',
-  'rice syrup',
-  'cryrstalline fructose',
-  'fructose',
-  'd-ribose',
-  'galactose'
-]
 
 function getSugarFact() {
   const number = Math.floor(Math.random()*(66-1+1)+1);
@@ -435,7 +374,7 @@ function sugarTypes() {
 
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
-  if (sugarNames.indexOf(messageText) > -1) {
+  if (ocrUtils.sugarNames.indexOf(messageText) > -1) {
     return [
       `That's a sugar!`,
       // startMessage(false)
@@ -507,6 +446,16 @@ function processLabelImage(url) {
     }
     return request(gaOptions)
     .then(responses => {
+      const pictureData = ocrUtils.processGvResponse(responses)
+
+
+      // TODO: Prabhaav - integrate pictureData with code below.
+      //       pictureData is a JSON dict containing:
+      //         servingSize  - the size of a single serving off the nutrition facts panel
+      //         servingsPer  - the number of servings in a box/container/whatever
+      //         sugars       - the number of grams of sugar
+      //         sugarsFound  - an array of all the sugars found on the ingredients text
+      //
       console.log('Responses:', responses);
       const {textAnnotations, fullTextAnnotation} = responses.responses[0];
       console.log('Text:', textAnnotations);
@@ -533,10 +482,10 @@ function processLabelImage(url) {
   })
 }
 
-// { 
-//   responses: [ 
-//     { textAnnotations: [Object], fullTextAnnotation: [Object] } 
-//   ] 
+// {
+//   responses: [
+//     { textAnnotations: [Object], fullTextAnnotation: [Object] }
+//   ]
 // }
 
 module.exports = botBuilder(function (request, originalApiRequest) {
