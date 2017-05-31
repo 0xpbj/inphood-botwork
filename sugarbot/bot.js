@@ -167,7 +167,7 @@ function processLabelImage(url, processLabelImageFlag) {
       //         sugarsFound  - an array of all the sugars found on the ingredients text
       //
       if (localFlag === 1 && pictureData && pictureData.sugars) {
-        let perResponse = 'You will consume ' + pictureData.sugars + ' in one serving: ' + pictureData.servingSize + '.'
+        let perResponse = 'You will consume ' + pictureData.sugars + ' of sugar in one serving: ' + pictureData.servingSize + '.'
         return [
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(100).get(),
