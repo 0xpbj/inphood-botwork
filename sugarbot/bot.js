@@ -459,16 +459,16 @@ function startMessage() {
     new fbTemplate.Generic()
     .addBubble('Nutrition Label Analysis', 'Send me a photo of your nutrition label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/nutrition.png')
-      .addButton('Analyze Nutrition', 'send nutrition label')
+      .addButton('Analyze Nutrition 🔬', 'send nutrition label')
     .addBubble('Ingredient Label Analysis', 'Send me a photo of your ingredient label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/ingredients.png')
-      .addButton('Analyze Ingredients', 'send ingredient label')
+      .addButton('Check Ingredients ‍💻', 'send ingredient label')
     .addBubble('Random Sugar Facts', 'Sugar knowledge tidbits')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/chance.jpg')
-      .addButton('Hit me with a fact', 'Random Sugar Facts')
+      .addButton('Random Sugar Fact 🎲', 'Random Sugar Facts')
     .addBubble('Not Sugar?', "Send me an ingredient and I'll tell you if it's sugar")
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/books.jpg')
-      .addButton('Is it sugar?', 'Not Sugar?')
+      .addButton('Is it sugar? 🍭', 'Not Sugar?')
     // .addBubble('Sugar Types', 'Get a list of all the sugar types and their info')
     //   .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
     //   .addButton('Really! 56?', 'Sugar Types')
@@ -477,34 +477,40 @@ function startMessage() {
 }
 
 function otherOptions(option) {
-  if (option === 1) {
-    return new fbTemplate.Button('What next?')
-      .addButton('Analyze Ingredients', 'send ingredient label')
-      .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .addButton('Is it sugar?', 'Not Sugar?')
-      .get();
-  }
-  else if (option === 2) {
-    return new fbTemplate.Button('What next?')
-      .addButton('Analyze Nutrition', 'send nutrition label')
-      .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .addButton('Is it sugar?', 'Not Sugar?')
-      .get();
-  }
-  else if (option === 3) {
-    return new fbTemplate.Button('What next?')
-      .addButton('Analyze Nutrition', 'send nutrition label')
-      .addButton('Analyze Ingredients', 'send ingredient label')
-      .addButton('Is it sugar?', 'Not Sugar?')
-      .get();
-  }
-  else if (option === 4) {
-    return new fbTemplate.Button('What next?')
-      .addButton('Analyze Nutrition', 'send nutrition label')
-      .addButton('Analyze Ingredients', 'send ingredient label')
-      .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .get();
-  }
+  // if (option === 1) {
+  //   return new fbTemplate.Button('What next?')
+  //     .addButton('Analyze Ingredients', 'send ingredient label')
+  //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
+  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .get();
+  // }
+  // else if (option === 2) {
+  //   return new fbTemplate.Button('What next?')
+  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
+  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .get();
+  // }
+  // else if (option === 3) {
+  //   return new fbTemplate.Button('What next?')
+  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Analyze Ingredients', 'send ingredient label')
+  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .get();
+  // }
+  // else if (option === 4) {
+  //   return new fbTemplate.Button('What next?')
+  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Analyze Ingredients', 'send ingredient label')
+  //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
+  //     .get();
+  // }
+  return new fbTemplate.Text('What would you like to do next?')
+    .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
+    .addQuickReply('Check Ingredients ‍💻', 'send ingredient label')
+    .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
+    .addQuickReply('Is it sugar? 🍭', 'Not Sugar?')
+    .get();
 }
 
 let processLabelImageFlag = 0
