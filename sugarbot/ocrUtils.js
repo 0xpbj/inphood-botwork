@@ -2,6 +2,7 @@ var http = require('http');
 const sugarUtils = require('./sugarUtils.js')
 
 // function to encode file data to base64 encoded string
+// from https://stackoverflow.com/questions/28834835/readfile-in-base64-nodejs
 exports.base64_encode = function(file) {
     const fs = require('fs')
     // read binary data
@@ -58,6 +59,22 @@ function getAtomFollowingTextToEOL(text, prefix) {
   return match[1].trim()
 }
 
+//  Returns the number of grams from the provided text, for example:
+//    '10g'      ---> returns 10
+//    '11 g'     ---> returns 11
+//    '12'       ---> returns 12
+//    '27grams'  ---> returns 27
+//    '30 grams' ---> returns 30
+//
+//  It's case insensitive so 10G works the same as 10g
+//  It's non-greedy so the first match is returned when there is a pair, for example:
+//    '10g is less than 12 grams' ---> returns 10
+//
+function getFirstNumberFromText(text) {
+  const lcText = text.toLowerCase()
+  const numberGrams = parseFloat(lcText.replace(/.*?([0-9]+).*/g, '$1'))
+}
+
 exports.processGvResponse = function(responses) {
   let text = ''
   let pictureData = {}
@@ -105,7 +122,10 @@ exports.processGvResponse = function(responses) {
   // TODO: further processing of atoms (i.e. convert to numbers/units etc.)
   pictureData.servingSize = servingSizeAtom
   pictureData.servingsPer = servingsPerAtom
-  pictureData.sugars = sugarsAtom
+  console.log('before')
+  pictureData.sugars = getFirstNumberFromText(sugarsAtom)
+  console.log(pictureData.sugars)
+  console.log('after')
 
   // 3. stip out everything up to 'ingredients: ' if found
   const lcTextAfterIngredients = lcText.replace(/.*ingredients(:?)/i, '')

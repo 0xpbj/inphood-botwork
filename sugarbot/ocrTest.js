@@ -23,8 +23,8 @@ http.createServer(function (request, response) {
   //                     'ingredients.half-sugars.jpg',
   //                     'ingredients.all-sugars.jpg']
 
-  // const testImages = ['./test/images/hemp_milk_sm.jpg']
-  const testImages = ['./test/images/ingredients.half-sugars.jpg']
+  const testImages = ['./test/images/hemp_milk_sm.jpg']
+  // const testImages = ['./test/images/ingredients.half-sugars.jpg']
 
   for (let testImageFile of testImages) {
     console.log('Queuing ', testImageFile, ':')
@@ -53,6 +53,7 @@ http.createServer(function (request, response) {
     rp(gaOptions)
     .then(responses => {
       const pictureData = ocrUtils.processGvResponse(responses)
+      console.log('pictureData.sugars: ', pictureData.sugars)
 
       // // console.log('Responses: ', responses)
       // for (let response of responses.responses) {
