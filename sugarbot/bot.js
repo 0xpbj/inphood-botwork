@@ -459,10 +459,10 @@ function startMessage() {
     new fbTemplate.Generic()
     .addBubble('Nutrition Label Analysis', 'Send me a photo of your nutrition label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/nutrition.png')
-      .addButton('Analyze Nutrition label', 'send nutrition label')
+      .addButton('Analyze Nutrition', 'send nutrition label')
     .addBubble('Ingredient Label Analysis', 'Send me a photo of your ingredient label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/ingredients.png')
-      .addButton('Analyze Ingredient label', 'send ingredient label')
+      .addButton('Analyze Ingredients', 'send ingredient label')
     .addBubble('Random Sugar Facts', 'Sugar knowledge tidbits')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/chance.jpg')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
@@ -477,31 +477,31 @@ function startMessage() {
 }
 
 function otherOptions(option) {
-  if (1) {
+  if (option === 1) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a ingredient label', 'send ingredient label')
+      .addButton('Analyze Ingredients', 'send ingredient label')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
       .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
-  else if (2) {
+  else if (option === 2) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a nutrition label', 'send nutrition label')
+      .addButton('Analyze Nutrition', 'send nutrition label')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
       .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
-  else if (3) {
+  else if (option === 3) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a nutritionlabel', 'send nutrition label')
-      .addButton('Analyze a ingredient label', 'send ingredient label')
+      .addButton('Analyze Nutrition', 'send nutrition label')
+      .addButton('Analyze Ingredients', 'send ingredient label')
       .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
-  else if (3) {
+  else if (option === 4) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a nutritionlabel', 'send nutrition label')
-      .addButton('Analyze a ingredient label', 'send ingredient label')
+      .addButton('Analyze Nutrition', 'send nutrition label')
+      .addButton('Analyze Ingredients', 'send ingredient label')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
       .get();
   }
