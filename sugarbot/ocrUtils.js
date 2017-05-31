@@ -72,7 +72,8 @@ function getAtomFollowingTextToEOL(text, prefix) {
 //
 function getFirstNumberFromText(text) {
   const lcText = text.toLowerCase()
-  const numberGrams = parseFloat(lcText.replace(/.*?([0-9]+).*/g, '$1'))
+  const isolatedGrams = lcText.replace(/.*?([0-9]+).*/g, '$1')
+  return parseFloat(isolatedGrams)
 }
 
 exports.processGvResponse = function(responses) {
@@ -122,10 +123,8 @@ exports.processGvResponse = function(responses) {
   // TODO: further processing of atoms (i.e. convert to numbers/units etc.)
   pictureData.servingSize = servingSizeAtom
   pictureData.servingsPer = servingsPerAtom
-  console.log('before')
   pictureData.sugars = getFirstNumberFromText(sugarsAtom)
   console.log(pictureData.sugars)
-  console.log('after')
 
   // 3. stip out everything up to 'ingredients: ' if found
   const lcTextAfterIngredients = lcText.replace(/.*ingredients(:?)/i, '')

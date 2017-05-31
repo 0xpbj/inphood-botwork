@@ -24,6 +24,7 @@ http.createServer(function (request, response) {
   //                     'ingredients.all-sugars.jpg']
 
   const testImages = ['./test/images/hemp_milk_sm.jpg']
+  // const testImages = ['./test/images/kodiak_cakes.jpg']
   // const testImages = ['./test/images/ingredients.half-sugars.jpg']
 
   for (let testImageFile of testImages) {
