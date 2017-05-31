@@ -17,14 +17,13 @@ curl -X POST -H "Content-Type: application/json" -d '{
         },
         {
           "type":"postback",
-          "title":"Not Sugar?",
-          "payload":"not sugar?"
+          "title":"Send Nutrition Label",
+          "payload":"send nutrition label"
         },
         {
-          "type":"web_url",
-          "title":"Home Page",
-          "url":"http://inphood.com",
-          "webview_height_ratio":"full"
+          "type":"postback",
+          "title":"Random Sugar Facts",
+          "payload":"random sugar facts"
         }
       ]
     }

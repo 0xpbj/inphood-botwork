@@ -410,42 +410,42 @@ function randomSugarFacts() {
     // "Processing label. Here's a random nutrition fact while you wait: ",
     data.fact,
     data.source,
-    otherOptions(2)
+    otherOptions(3)
   ]
 }
 
-function sugarTypes() {
-  return [
-    new fbTemplate.ChatAction('typing_on').get(),
-    new fbTemplate.Pause(100).get(),
-    new fbTemplate.List()
-      .addBubble('Sucrose', 'Also known as white sugar or table sugar')
-        .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
-        .addDefaultAction('https://en.wikipedia.org/wiki/Sucrose')
-      .addBubble('High-Fructose Corn Syrup', 'Made from corn starch, roughly 50% glucose and 50% fructose.')
-        .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/hfcp.jpg')
-        .addDefaultAction('https://en.wikipedia.org/wiki/High-fructose_corn_syrup')
-      .addBubble('Agave Nectar', 'Agave syrup is sweeter than honey and tends to be less viscous.')
-        .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/agave.jpg')
-        .addDefaultAction('https://en.wikipedia.org/wiki/Agave_nectar')
-      .addListButton('See Complete Sugar list', 'https://en.wikipedia.org/wiki/List_of_sugars')
-      .get(),
-    otherOptions(4)
-  ]
-}
+// function sugarTypes() {
+//   return [
+//     new fbTemplate.ChatAction('typing_on').get(),
+//     new fbTemplate.Pause(100).get(),
+//     new fbTemplate.List()
+//       .addBubble('Sucrose', 'Also known as white sugar or table sugar')
+//         .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
+//         .addDefaultAction('https://en.wikipedia.org/wiki/Sucrose')
+//       .addBubble('High-Fructose Corn Syrup', 'Made from corn starch, roughly 50% glucose and 50% fructose.')
+//         .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/hfcp.jpg')
+//         .addDefaultAction('https://en.wikipedia.org/wiki/High-fructose_corn_syrup')
+//       .addBubble('Agave Nectar', 'Agave syrup is sweeter than honey and tends to be less viscous.')
+//         .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/agave.jpg')
+//         .addDefaultAction('https://en.wikipedia.org/wiki/Agave_nectar')
+//       .addListButton('See Complete Sugar list', 'https://en.wikipedia.org/wiki/List_of_sugars')
+//       .get(),
+//     otherOptions(5)
+//   ]
+// }
 
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
   if (sugarNames.indexOf(messageText) > -1) {
     return [
       `That's a sugar!`,
-      otherOptions(3)
+      otherOptions(4)
     ]
   }
   else {
     return [
       `That's not a sugar!`,
-      otherOptions(3)
+      otherOptions(4)
     ]
   }
 }
@@ -457,18 +457,21 @@ function startMessage() {
       .get(),
     'Welcome to SugarInfoBot, the easiest way to learn about your sugar intake. Here are your options',
     new fbTemplate.Generic()
-    .addBubble('Label Analysis', 'Send me a photo of your nutrition label to analyze')
-      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/camera.jpg')
-      .addButton('Analyze a label', 'send nutrition label')
+    .addBubble('Nutrition Label Analysis', 'Send me a photo of your nutrition label to analyze')
+      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/nutrition.png')
+      .addButton('Analyze Nutrition label', 'send nutrition label')
+    .addBubble('Ingredient Label Analysis', 'Send me a photo of your ingredient label to analyze')
+      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/ingredients.png')
+      .addButton('Analyze Ingredient label', 'send ingredient label')
     .addBubble('Random Sugar Facts', 'Sugar knowledge tidbits')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/chance.jpg')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
     .addBubble('Not Sugar?', "Send me an ingredient and I'll tell you if it's sugar")
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/books.jpg')
-      .addButton('Is it sugar', 'Not Sugar?')
-    .addBubble('Sugar Types', 'Get a list of all the sugar types and their info')
-      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
-      .addButton('Really! 56?', 'Sugar Types')
+      .addButton('Is it sugar?', 'Not Sugar?')
+    // .addBubble('Sugar Types', 'Get a list of all the sugar types and their info')
+    //   .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
+    //   .addButton('Really! 56?', 'Sugar Types')
     .get()
   ]
 }
@@ -476,36 +479,38 @@ function startMessage() {
 function otherOptions(option) {
   if (1) {
     return new fbTemplate.Button('What next?')
+      .addButton('Analyze a ingredient label', 'send ingredient label')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .addButton('Is it sugar', 'Not Sugar?')
-      .addButton('Really! 56?', 'Sugar Types')
+      .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
   else if (2) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a label', 'send nutrition label')
-      .addButton('Is it sugar', 'Not Sugar?')
-      .addButton('Really! 56?', 'Sugar Types')
+      .addButton('Analyze a nutrition label', 'send nutrition label')
+      .addButton('Hit me with a fact', 'Random Sugar Facts')
+      .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
   else if (3) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a label', 'send nutrition label')
-      .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .addButton('Really! 56?', 'Sugar Types')
+      .addButton('Analyze a nutritionlabel', 'send nutrition label')
+      .addButton('Analyze a ingredient label', 'send ingredient label')
+      .addButton('Is it sugar?', 'Not Sugar?')
       .get();
   }
   else if (3) {
     return new fbTemplate.Button('What next?')
-      .addButton('Analyze a label', 'send nutrition label')
+      .addButton('Analyze a nutritionlabel', 'send nutrition label')
+      .addButton('Analyze a ingredient label', 'send ingredient label')
       .addButton('Hit me with a fact', 'Random Sugar Facts')
-      .addButton('Is it sugar', 'Not Sugar?')
       .get();
   }
 }
 
-let processLabelImageFlag = false
-function processLabelImage(url) {
+let processLabelImageFlag = 0
+function processLabelImage(url, processLabelImageFlag) {
+  let localFlag = processLabelImageFlag
+  processLabelImageFlag = 0
   let encoding = 'base64'
   var fbOptions = {
     encoding: encoding,
@@ -552,7 +557,7 @@ function processLabelImage(url) {
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(100).get(),
           'Results received',
-          otherOptions(1)
+          otherOptions(localFlag)
         ]
       }
       else {
@@ -560,7 +565,7 @@ function processLabelImage(url) {
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(100).get(),
           'No sugar found!',
-          otherOptions(1)
+          otherOptions(localFlag)
         ]
       }
     })
@@ -586,11 +591,19 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return startMessage()
         }
         case 'send nutrition label': {
-          processLabelImageFlag = true
+          processLabelImageFlag = 1
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
             `Ok, please send me a picture of the nutrition label`
+          ]
+        }
+        case 'send ingredient label': {
+          processLabelImageFlag = 2
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            `Ok, please send me a picture of the ingredient label`
           ]
         }
         case 'another random sugar fact':
@@ -609,19 +622,18 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             `Ok, please send me the ingredient name.`
           ]
         }
-        case 'really! 56?':
-        case 'sugar types': {
-          return sugarTypes()
-        }
+        // case 'really! 56?':
+        // case 'sugar types': {
+        //   return sugarTypes()
+        // }
         default: {
           return startMessage()
         }
       }
     }
     else if (processLabelImageFlag && messageAttachments) {
-      processLabelImageFlag = false
       const {url} = messageAttachments[0].payload
-      return processLabelImage(url)
+      return processLabelImage(url, processLabelImageFlag)
     }
   }
 }, { platforms: ['facebook'] });
