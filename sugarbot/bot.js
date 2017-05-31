@@ -70,7 +70,7 @@ function startMessage() {
       .addButton('Random Sugar Fact 🎲', 'Random Sugar Facts')
     .addBubble('Not Sugar?', "Send me an ingredient and I'll tell you if it's sugar")
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/books.jpg')
-      .addButton('Is it sugar? 🍭', 'Not Sugar?')
+      .addButton('Not Sugar? 🍭', 'Not Sugar?')
     // .addBubble('Sugar Types', 'Get a list of all the sugar types and their info')
     //   .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/types.jpg')
     //   .addButton('Really! 56?', 'Sugar Types')
@@ -83,21 +83,21 @@ function otherOptions(option) {
   //   return new fbTemplate.Button('What next?')
   //     .addButton('Analyze Ingredients', 'send ingredient label')
   //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
-  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .addButton('Not Sugar?', 'Not Sugar?')
   //     .get();
   // }
   // else if (option === 2) {
   //   return new fbTemplate.Button('What next?')
   //     .addButton('Analyze Nutrition', 'send nutrition label')
   //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
-  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .addButton('Not Sugar?', 'Not Sugar?')
   //     .get();
   // }
   // else if (option === 3) {
   //   return new fbTemplate.Button('What next?')
   //     .addButton('Analyze Nutrition', 'send nutrition label')
   //     .addButton('Analyze Ingredients', 'send ingredient label')
-  //     .addButton('Is it sugar?', 'Not Sugar?')
+  //     .addButton('Not Sugar?', 'Not Sugar?')
   //     .get();
   // }
   // else if (option === 4) {
@@ -109,15 +109,18 @@ function otherOptions(option) {
   // }
   return new fbTemplate.Text('What would you like to do next?')
     .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
-    .addQuickReply('Check Ingredients ‍💻', 'send ingredient label')
+    .addQuickReply('Check Ingredient ‍💻', 'send ingredient label')
     .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-    .addQuickReply('Is it sugar? 🍭', 'Not Sugar?')
+    .addQuickReply('Not Sugar? 🍭', 'Not Sugar?')
     .get();
 }
 
 let processLabelImageFlag = 0
 function processLabelImage(url, processLabelImageFlag) {
   let localFlag = processLabelImageFlag
+  // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+  // console.log(processLabelImageFlag)
+  // console.log(localFlag)
   processLabelImageFlag = 0
   let encoding = 'base64'
   var fbOptions = {
@@ -156,8 +159,6 @@ function processLabelImage(url, processLabelImageFlag) {
     return request(gaOptions)
     .then(responses => {
       const pictureData = ocrUtils.processGvResponse(responses)
-
-
       // TODO: Prabhaav - integrate pictureData with code below.
       //       pictureData is a JSON dict containing:
       //         servingSize  - the size of a single serving off the nutrition facts panel
@@ -165,16 +166,24 @@ function processLabelImage(url, processLabelImageFlag) {
       //         sugars       - the number of grams of sugar
       //         sugarsFound  - an array of all the sugars found on the ingredients text
       //
-      console.log('Responses:', responses);
-      const {textAnnotations, fullTextAnnotation} = responses.responses[0];
-      console.log('Text:', textAnnotations);
-      console.log('Full Text: ', fullTextAnnotation)
-      if (textAnnotations && fullTextAnnotation) {
-        textAnnotations.forEach((text) => console.log(text));
+      if (localFlag === 1 && pictureData && pictureData.sugars) {
+        let perResponse = 'You will consume ' + pictureData.sugars + ' of sugar in one serving: ' + pictureData.servingSize + '.'
         return [
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(100).get(),
-          'Results received',
+          perResponse,
+          otherOptions(localFlag)
+        ]
+      }
+      else if (localFlag === 2 && pictureData && pictureData.sugarsFound.length > 0) {
+        let perResponse = 'Here are the sugars found in the ingredient label\n. ' 
+        for (let sug of pictureData.sugarsFound) {
+          perResponse += sug + ', '
+        }
+        return [
+          new fbTemplate.ChatAction('typing_on').get(),
+          new fbTemplate.Pause(100).get(),
+          perResponse,
           otherOptions(localFlag)
         ]
       }
