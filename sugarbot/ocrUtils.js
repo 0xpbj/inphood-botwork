@@ -1,88 +1,5 @@
 var http = require('http');
-var levenshtein = require('fast-levenshtein');
-
-// Source: https://authoritynutrition.com/56-different-names-for-sugar/
-const sugarNames = [
-  'sugar',
-  'sucrose',
-  'high-fructose corn syrup',
-  'hfcs',
-  'agave nectar',
-  'beet sugar',
-  'blackstrap molasses',
-  'brown sugar',
-  'buttered syrup',
-  'cane juice crystals',
-  'cane sugar',
-  'caramel',
-  'carob syrup',
-  'castor sugar',
-  'coconut sugar',
-  'confectioner\'s sugar',
-  'powdered sugar',
-  'date sugar',
-  'demarara sugar',
-  'evaporated cane juice',
-  'florida crystals',
-  'fruit juice',
-  'fruit juice concentrate',
-  'golden sugar',
-  'golden syrup',
-  'grape sugar',
-  'honey',
-  'icing sugar',
-  'invert sugar',
-  'maple syrup',
-  'molasses',
-  'muscovado sugar',
-  'panela sugar',
-  'raw sugar',
-  'refiner\'s syrup',
-  'sorghum syrup',
-  'sucanat',
-  'treacle sugar',
-  'turbinado sugar',
-  'yellow sugar',
-  'barley malt',
-  'brown rice syrup',
-  'corn syrup',
-  'corn syrup solids',
-  'dextrin',
-  'dextrose',
-  'diastatic malt',
-  'ethyl maltol',
-  'glucose',
-  'glucose solids',
-  'lactose',
-  'malt syrup',
-  'maltodextrin',
-  'maltose',
-  'rice syrup',
-  'cryrstalline fructose',
-  'fructose',
-  'd-ribose',
-  'galactose'
-]
-
-// Iterate over all of the sugar names getting a levenshtein distance for each one
-// compared to anIngredient. Return the closest matching one.
-//
-function getSugar(anIngredient) {
-  const levThreshold = 2
-  let minLev = levThreshold
-  let matchingSugar = ''
-
-  for (let sugarName of sugarNames) {
-    let lev = levenshtein.get(anIngredient, sugarName)
-
-    if (lev <= minLev) {
-      minLev = lev
-      matchingSugar = sugarName
-    }
-  }
-
-  return matchingSugar
-}
+const sugarUtils = require('./sugarUtils.js')
 
 // function to encode file data to base64 encoded string
 exports.base64_encode = function(file) {
@@ -116,7 +33,7 @@ function processText(text) {
   //
   for (let ingredient of ingredientsText) {
     const lcTrimmedIngredient = ingredient.toLowerCase().trim()
-    const sugar = getSugar(lcTrimmedIngredient)
+    const sugar = sugarUtils.getSugar(lcTrimmedIngredient)
     if (sugar !== '') {
       console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')
     }
@@ -132,7 +49,7 @@ function processText(text) {
 function getAtomFollowingTextToEOL(text, prefix) {
   const regex = new RegExp(prefix + "(.*?)\n")
   let match = regex.exec(text)
-  if (match.length < 2) {
+  if (!match || match.length < 2) {
     return ""
   }
   // console.log('getAtomFollowingTextToEOL -------------------------------------')
@@ -208,7 +125,7 @@ exports.processGvResponse = function(responses) {
   let sugarsFound = false
   for (let ingredient of lcIngredients) {
     const lcTrimmedIngredient = ingredient.trim()
-    const sugar = getSugar(lcTrimmedIngredient)
+    const sugar = sugarUtils.getSugar(lcTrimmedIngredient)
     if (sugar !== '') {
       sugarsFound = true
       console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')
