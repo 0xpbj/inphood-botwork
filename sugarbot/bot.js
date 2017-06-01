@@ -115,6 +115,85 @@ function otherOptions(option) {
     .get();
 }
 
+function getGifUrl(number) {
+  console.log('******************', number)
+  if (number <= 3) {
+    console.log('In 3')
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_003g.gif'
+  }
+  else if (number == 4) {
+    console.log('In 4')
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_005g.gif'
+  }
+  else if (number == 5) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_005g.gif'
+  }
+  else if (number == 6) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_006g.gif'
+  }
+  else if (number == 7) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_007g.gif'
+  }
+  else if (number == 8) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_008g.gif'
+  }
+  else if (number == 9) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_009g.gif'
+  }
+  else if (number == 10) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_010g.gif'
+  }
+  else if (number == 11) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_011g.gif'
+  }
+  else if (number == 12) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_012g.gif'
+  }
+  else if (number == 13) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_013g.gif'
+  }
+  else if (number == 14) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_014g.gif'
+  }
+  else if (number == 15) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_015g.gif'
+  }
+  else if (number <= 20) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_020g.gif'
+  }
+  else if (number <= 25) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_025g.gif'
+  }
+  else if (number <= 30) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_030g.gif'
+  }
+  else if (number <= 35) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_035g.gif'
+  }
+  else if (number <= 40) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_040g.gif'
+  }
+  else if (number <= 45) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_045g.gif'
+  }
+  else if (number <= 50) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_050g.gif'
+  }
+  else if (number <= 55) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_055g.gif'
+  }
+  else if (number <= 60) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_060g.gif'
+  }
+  else if (number <= 65) {
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_065g.gif'
+  }
+  else {
+    console.log('In default')
+    return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/9000.gif'
+  }
+}
+
 let processLabelImageFlag = 0
 function processLabelImage(url, processLabelImageFlag) {
   let localFlag = processLabelImageFlag
@@ -166,12 +245,17 @@ function processLabelImage(url, processLabelImageFlag) {
       //         sugars       - the number of grams of sugar
       //         sugarsFound  - an array of all the sugars found on the ingredients text
       //
-      if (localFlag === 1 && pictureData && pictureData.sugars) {
-        let perResponse = 'You will consume ' + pictureData.sugars + ' of sugar in one serving: ' + pictureData.servingSize + '.'
+      // console.log('************************', pictureData)
+      if (localFlag === 1 && pictureData && !isNaN(pictureData.sugars)) {
+        let perResponse = 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.' 
+        let gifUrl = getGifUrl(pictureData.sugars)
         return [
           new fbTemplate.ChatAction('typing_on').get(),
           new fbTemplate.Pause(100).get(),
           perResponse,
+          new fbTemplate
+          .Image(gifUrl)
+          .get(),
           otherOptions(localFlag)
         ]
       }
@@ -222,7 +306,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the nutrition label`
+            `Ok, please send me a picture of the nutrition label (Note: horizontal labels are not currently supported).`
           ]
         }
         case 'send ingredient label': {
@@ -230,7 +314,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the ingredient label`
+            `Ok, please send me a picture of the ingredient label.`
           ]
         }
         case 'another random sugar fact':
