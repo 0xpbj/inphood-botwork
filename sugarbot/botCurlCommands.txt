@@ -12,17 +12,17 @@ curl -X POST -H "Content-Type: application/json" -d '{
       "call_to_actions":[
         {
           "type":"postback",
-          "title":"Analyze Nutrition",
+          "title":"Analyze Nutrition 🔬",
           "payload":"send nutrition label"
         },
         {
           "type":"postback",
-          "title":"Analyze Ingredients",
+          "title":"Check Ingredients ‍💻",
           "payload":"send ingredient label"
         },
         {
           "type":"postback",
-          "title":"Random Sugar Facts",
+          "title":"Random Sugar Facts 🎲",
           "payload":"random sugar facts"
         }
       ]
