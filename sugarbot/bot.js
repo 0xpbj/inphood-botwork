@@ -38,7 +38,8 @@ function randomSugarFacts() {
 
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
-  if (ocrUtils.sugarNames.indexOf(messageText) > -1) {
+  console.log('Inside not sugar checker', messageText)
+  if (sugarUtils.sugarNames.indexOf(messageText) > -1) {
     return [
       `That's a sugar!`,
       otherOptions(4)
@@ -250,6 +251,7 @@ function processLabelImage(url, processLabelImageFlag) {
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
             perResponse,
+            "Here's a gifv that shows you the amount of sugar in grams",
             new fbTemplate
             .Image(gifUrl)
             .get(),
@@ -331,6 +333,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         case 'send the ingredient':
         case 'try another sugar?':
         case 'not sugar?':
+        case 'not sugar':
         {
           sugarCheckerFlag = true
           return [
