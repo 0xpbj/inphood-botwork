@@ -23,7 +23,8 @@ http.createServer(function (request, response) {
   //                     'ingredients.half-sugars.jpg',
   //                     'ingredients.all-sugars.jpg']
 
-  const testImages = ['./test/images/hemp_milk_sm.jpg']
+  // const testImages = ['./test/images/hemp_milk_sm.jpg']
+  const testImages = ['./test/images/issues/no-sugars-nlabel.jpg']
   // const testImages = ['./test/images/kodiak_cakes.jpg']
   // const testImages = ['./test/images/ingredients.half-sugars.jpg']
 

@@ -39,7 +39,7 @@ function randomSugarFacts() {
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
   console.log('Inside not sugar checker', messageText)
-  if (sugarUtils.sugarNames.indexOf(messageText) > -1) {
+  if (sugarUtils.indexOfSugarNames(messageText) > -1) {
     return [
       `That's a sugar!`,
       otherOptions(4)
@@ -268,7 +268,7 @@ function processLabelImage(url, processLabelImageFlag) {
         }
       }
       else if (localFlag === 2 && pictureData && pictureData.sugarsFound.length > 0) {
-        let perResponse = 'Here are the sugars found in the ingredient label\n. ' 
+        let perResponse = 'Here are the sugars found in the ingredient label\n. '
         for (let sug of pictureData.sugarsFound) {
           perResponse += sug + ', '
         }
