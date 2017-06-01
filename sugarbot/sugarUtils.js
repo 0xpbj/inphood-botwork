@@ -63,6 +63,10 @@ const sugarNames = [
   'galactose'
 ]
 
+exports.indexOfSugarNames = function(messageText) {
+  return sugarNames.indexOf(messageText) > -1)
+}
+
 // Iterate over all of the sugar names getting a levenshtein distance for each one
 // compared to anIngredient. Return the closest matching one.
 //
