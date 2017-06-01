@@ -116,13 +116,10 @@ function otherOptions(option) {
 }
 
 function getGifUrl(number) {
-  console.log('******************', number)
-  if (number <= 3) {
-    console.log('In 3')
+  if (number == 3) {
     return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_003g.gif'
   }
   else if (number == 4) {
-    console.log('In 4')
     return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_005g.gif'
   }
   else if (number == 5) {
@@ -189,7 +186,6 @@ function getGifUrl(number) {
     return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_065g.gif'
   }
   else {
-    console.log('In default')
     return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/9000.gif'
   }
 }
@@ -248,16 +244,26 @@ function processLabelImage(url, processLabelImageFlag) {
       // console.log('************************', pictureData)
       if (localFlag === 1 && pictureData && !isNaN(pictureData.sugars)) {
         let perResponse = 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.' 
-        let gifUrl = getGifUrl(pictureData.sugars)
-        return [
-          new fbTemplate.ChatAction('typing_on').get(),
-          new fbTemplate.Pause(100).get(),
-          perResponse,
-          new fbTemplate
-          .Image(gifUrl)
-          .get(),
-          otherOptions(localFlag)
-        ]
+        if (pictureData.sugars > 2) {
+          let gifUrl = getGifUrl(pictureData.sugars)
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            perResponse,
+            new fbTemplate
+            .Image(gifUrl)
+            .get(),
+            otherOptions(localFlag)
+          ]
+        }
+        else {
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            perResponse,
+            otherOptions(localFlag)
+          ]
+        }
       }
       else if (localFlag === 2 && pictureData && pictureData.sugarsFound.length > 0) {
         let perResponse = 'Here are the sugars found in the ingredient label\n. ' 
