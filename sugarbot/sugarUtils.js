@@ -13,6 +13,7 @@ const sugarNames = [
   'buttered syrup',
   'cane juice crystals',
   'cane sugar',
+  'cane sugar syrup',
   'caramel',
   'carob syrup',
   'castor sugar',

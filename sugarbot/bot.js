@@ -12,7 +12,7 @@ function randomSugarFacts() {
     // "Processing label. Here's a random nutrition fact while you wait: ",
     data.fact,
     data.source,
-    otherOptions(3)
+    otherOptions(false)
   ]
 }
 
@@ -42,13 +42,13 @@ function sugarChecker(messageText) {
   if (sugarUtils.indexOfSugarNames(messageText) > -1) {
     return [
       `That's a sugar!`,
-      otherOptions(4)
+      otherOptions(false)
     ]
   }
   else {
     return [
       `That's not a sugar!`,
-      otherOptions(4)
+      otherOptions(false)
     ]
   }
 }
@@ -108,16 +108,30 @@ function otherOptions(option) {
   //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
   //     .get();
   // }
-  return new fbTemplate.Text('What would you like to do next?')
-    .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
-    .addQuickReply('Check Ingredient ‍💻', 'send ingredient label')
-    .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-    .addQuickReply('Not Sugar? 🍭', 'Not Sugar?')
-    .get();
+  if (option === true) {
+    return [
+      "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
+      new fbTemplate.Text("Here's what I can help you with")
+        .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
+        .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
+        .addQuickReply('Not Sugar? 🍭', 'Not Sugar?')
+        .get()
+    ]
+  }
+  else {
+    return new fbTemplate.Text('What would you like to do next?')
+      .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
+      .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
+      .addQuickReply('Not Sugar? 🍭', 'Not Sugar?')
+      .get();
+  }
 }
 
 function getGifUrl(number) {
-  if (number == 3) {
+  if (number < 3) {
+    return ''
+  }
+  else if (number == 3) {
     return 'https://d1q0ddz2y0icfw.cloudfront.net/sugargifs/Sugar_003g.gif'
   }
   else if (number == 4) {
@@ -191,13 +205,7 @@ function getGifUrl(number) {
   }
 }
 
-let processLabelImageFlag = 0
-function processLabelImage(url, processLabelImageFlag) {
-  let localFlag = processLabelImageFlag
-  // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-  // console.log(processLabelImageFlag)
-  // console.log(localFlag)
-  processLabelImageFlag = 0
+function processLabelImage(url) {
   let encoding = 'base64'
   var fbOptions = {
     encoding: encoding,
@@ -235,57 +243,85 @@ function processLabelImage(url, processLabelImageFlag) {
     return request(gaOptions)
     .then(responses => {
       const pictureData = ocrUtils.processGvResponse(responses)
-      // TODO: Prabhaav - integrate pictureData with code below.
       //       pictureData is a JSON dict containing:
       //         servingSize  - the size of a single serving off the nutrition facts panel
       //         servingsPer  - the number of servings in a box/container/whatever
       //         sugars       - the number of grams of sugar
       //         sugarsFound  - an array of all the sugars found on the ingredients text
-      //
-      // console.log('************************', pictureData)
-      if (localFlag === 1 && pictureData && !isNaN(pictureData.sugars)) {
-        let perResponse = 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.' 
-        if (pictureData.sugars > 2) {
-          let gifUrl = getGifUrl(pictureData.sugars)
+      if (isNaN(pictureData.sugars) && pictureData.sugarsFound.length === 0) {
+        return [
+          'No sugar content or ingredients found in the image. Please re-take the photo with the nutrition label and/or the ingredient text clearly visible and try again',
+          otherOptions(false)
+        ]
+      }
+      else {
+        let nutResponse = ''
+        let ingResponse = ''
+        let gifUrl = ''
+        if (!isNaN(pictureData.sugars)) {
+          nutResponse += 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.' 
+          if (pictureData.sugars > 2) {
+            gifUrl = getGifUrl(pictureData.sugars)
+          }
+        }
+        if (pictureData.sugarsFound.length > 0) {
+          ingResponse = 'Here are the sugars found in the ingredient label\n. '
+          for (let sug of pictureData.sugarsFound) {
+            ingResponse += sug + ', '
+          }
+        }
+        // nutResponse = (nutResponse === '') ? 'No sugar content found in the image. Please re-take the photo with the nutrition label clearly visible and try again' : nutResponse
+        // ingResponse = (ingResponse === '') ? 'No sugar ingredients found in the image. Please re-take the photo with the ingredient label clearly visible and try again.' : ingResponse
+        if (gifUrl === '' && nutResponse !== '' && ingResponse !== '') {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            perResponse,
+            nutResponse,
+            ingResponse,
+            otherOptions(false)
+          ]
+        }
+        else if (gifUrl !== '' && ingResponse === '' && nutResponse !== '') {
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            nutResponse,
             "Here's a gifv that shows you the amount of sugar in grams",
             new fbTemplate
             .Image(gifUrl)
             .get(),
-            otherOptions(localFlag)
+            otherOptions(false)
+          ]
+        }
+        else if (nutResponse === '' && ingResponse !== '') {
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            ingResponse,
+            otherOptions(false)
+          ]
+        }
+        else if (nutResponse !== '' && ingResponse === '' && gifUrl === '') {
+          return [
+            new fbTemplate.ChatAction('typing_on').get(),
+            new fbTemplate.Pause(100).get(),
+            nutResponse,
+            otherOptions(false)
           ]
         }
         else {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            perResponse,
-            otherOptions(localFlag)
+            nutResponse,
+            "Here's a gifv that shows you the amount of sugar in grams",
+            new fbTemplate
+            .Image(gifUrl)
+            .get(),
+            ingResponse,
+            otherOptions(false)
           ]
         }
-      }
-      else if (localFlag === 2 && pictureData && pictureData.sugarsFound.length > 0) {
-        let perResponse = 'Here are the sugars found in the ingredient label\n. '
-        for (let sug of pictureData.sugarsFound) {
-          perResponse += sug + ', '
-        }
-        return [
-          new fbTemplate.ChatAction('typing_on').get(),
-          new fbTemplate.Pause(100).get(),
-          perResponse,
-          otherOptions(localFlag)
-        ]
-      }
-      else {
-        return [
-          new fbTemplate.ChatAction('typing_on').get(),
-          new fbTemplate.Pause(100).get(),
-          'No sugar found!',
-          otherOptions(localFlag)
-        ]
       }
     })
   })
@@ -307,22 +343,14 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       switch (messageText) {
         case 'help':
         case 'get started': {
-          return startMessage()
+          return otherOptions(true)
         }
         case 'send nutrition label': {
-          processLabelImageFlag = 1
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the nutrition label (Note: horizontal labels are not currently supported).`
-          ]
-        }
-        case 'send ingredient label': {
-          processLabelImageFlag = 2
-          return [
-            new fbTemplate.ChatAction('typing_on').get(),
-            new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the ingredient label.`
+            `Ok, please send me a picture of the nutrition label. You can also send me a ingredient list to analyze.`,
+            `(Note: horizontal labels are not currently supported).`
           ]
         }
         case 'another random sugar fact':
@@ -342,18 +370,14 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             `Ok, please send me the ingredient name.`
           ]
         }
-        // case 'really! 56?':
-        // case 'sugar types': {
-        //   return sugarTypes()
-        // }
         default: {
-          return startMessage()
+          return otherOptions(true)
         }
       }
     }
-    else if (processLabelImageFlag && messageAttachments) {
+    else if (messageAttachments) {
       const {url} = messageAttachments[0].payload
-      return processLabelImage(url, processLabelImageFlag)
+      return processLabelImage(url)
     }
   }
 }, { platforms: ['facebook'] });

@@ -17,13 +17,13 @@ curl -X POST -H "Content-Type: application/json" -d '{
         },
         {
           "type":"postback",
-          "title":"Check Ingredients ‍💻",
-          "payload":"send ingredient label"
+          "title":"Random Sugar Facts 🎲",
+          "payload":"random sugar facts"
         },
         {
           "type":"postback",
-          "title":"Random Sugar Facts 🎲",
-          "payload":"random sugar facts"
+          "title":"Not Sugar? 🍭",
+          "payload":"Not Sugar?"
         }
       ]
     }
