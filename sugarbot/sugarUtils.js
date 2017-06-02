@@ -64,7 +64,7 @@ const sugarNames = [
 ]
 
 exports.indexOfSugarNames = function(messageText) {
-  return sugarNames.indexOf(messageText) > -1)
+  return sugarNames.indexOf(messageText)
 }
 
 // Iterate over all of the sugar names getting a levenshtein distance for each one
