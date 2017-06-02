@@ -1,6 +1,10 @@
 var levenshtein = require('fast-levenshtein');
 
-// Source: https://authoritynutrition.com/56-different-names-for-sugar/
+// Sources:
+//  - https://authoritynutrition.com/56-different-names-for-sugar/  (up to galactose)
+//  - http://yournewswire.com/high-fructose-corn-syrup-renamed/  (isolated fructose)
+//  - https://www.usatoday.com/story/news/2017/04/25/sorry-junk-and-fast-food-fans-but/100844342/
+//      (inulin, glucose-fructose, iso glucose, isolated glucose, fruit fructose)
 const sugarNames = [
   'sugar',
   'sucrose',
@@ -60,7 +64,13 @@ const sugarNames = [
   'cryrstalline fructose',
   'fructose',
   'd-ribose',
-  'galactose'
+  'galactose',
+  'isolated fructose',
+  'inulin',
+  'glucose-fructose',
+  'iso glucose',
+  'isolated glucose',
+  'fruit fructose'
 ]
 
 exports.indexOfSugarNames = function(messageText) {
