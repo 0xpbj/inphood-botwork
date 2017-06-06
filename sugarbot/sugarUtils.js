@@ -8,7 +8,7 @@ var levenshtein = require('fast-levenshtein');
 const sugarNames = [
   'sugar',
   'sucrose',
-  'high-fructose corn syrup',
+  'high fructose corn syrup',
   'hfcs',
   'agave nectar',
   'beet sugar',
