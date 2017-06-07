@@ -2,8 +2,8 @@
 const botBuilder = require('claudia-bot-builder');
 const ocrUtils = require('./ocrUtils.js')
 const sugarUtils = require('./sugarUtils.js')
+const utils = require('./utils.js')
 const fbTemplate = botBuilder.fbTemplate;
-const Quagga = require('quagga').default;
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -236,23 +236,6 @@ function getGifUrl(number) {
   }
 }
 
-function getBarcodeAsync(param){
-  return new Promise((resolve, reject) => {
-    Quagga.decodeSingle(param, (data) => {
-      console.log(data)
-      if (typeof(data) === 'undefined') {
-        return reject('error');
-      }
-      else if (!data.codeResult) {
-        return reject('error');
-      }
-      resolve(data.codeResult.code);
-    })
-  })
-}
-
-
-
 let upcFlag = false
 let cvFlag = false
 let questionFlag = false
@@ -276,7 +259,7 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
     var isJpg = url.indexOf(".jpg")
     if (lupcFlag) {
       const barcode = (isJpg > -1) ? 'data:image/jpg;base64,' + result.body : 'data:image/png;base64,' + result.body
-      return getBarcodeAsync({
+      return utils.getBarcodeAsync({
         numOfWorkers: 0,  // Needs to be 0 when used within node
         inputStream: {
           size: 800  // restrict input-size to be 800px in width (long-side)
@@ -310,6 +293,17 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
           // if (fdaResult.body.list.item)
           const foodName = fdaResult.body.list.item[0].name
           const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
+          // This report prints out information about the item from the FDA database
+          // corresponding to the given ndbno. For instance for Prabhaav Jam this would
+          // be in the console.log:
+          //
+          //  1 Tbsp (20g) contains 13.00g sugars
+          //  ---
+          //  Ingredients: raspberries, SUGAR, CANE SUGAR, concentrated lemon juice, fruit pectin.
+          //
+          //
+          const ndbno = fdaResult.body.list.item[0].ndbno
+          return utils.getUsdaReport(ndbno)
           var fulldate = Date.now()
           var dateValue = new Date(fulldate)
           var date = dateValue.toDateString()
