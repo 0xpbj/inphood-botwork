@@ -34,7 +34,7 @@ function processText(text) {
   //
   for (let ingredient of ingredientsText) {
     const lcTrimmedIngredient = ingredient.toLowerCase().trim()
-    const sugar = sugarUtils.getSugar(lcTrimmedIngredient)
+    const sugar = sugarUtils.getSugarII(lcTrimmedIngredient)
     if (sugar !== '') {
       console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')
     }
@@ -145,7 +145,7 @@ exports.processGvResponse = function(responses) {
   let sugarsFound = false
   for (let ingredient of lcIngredients) {
     const lcTrimmedIngredient = ingredient.trim()
-    const sugar = sugarUtils.getSugar(lcTrimmedIngredient)
+    const sugar = sugarUtils.getSugarII(lcTrimmedIngredient)
     if (sugar !== '') {
       sugarsFound = true
       console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')

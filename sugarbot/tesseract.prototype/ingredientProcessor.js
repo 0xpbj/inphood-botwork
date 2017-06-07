@@ -107,7 +107,7 @@ function processText(text) {
   //
   for (let ingredient of ingredientsText) {
     const lcTrimmedIngredient = ingredient.toLowerCase().trim()
-    const sugar = getSugar(lcTrimmedIngredient)
+    const sugar = getSugarII(lcTrimmedIngredient)
     if (sugar !== '') {
       console.log('Found sugar ', sugar, ' (', lcTrimmedIngredient, ')')
     }

@@ -53,7 +53,7 @@ function todaysSugarRecipe() {
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
   console.log('Inside not sugar checker', messageText)
-  if (sugarUtils.indexOfSugarNames(messageText) > -1) {
+  if (sugarUtils.getSugarII(messageText) !== '') {
     return [
       `That's a processed sugar ingredient!`,
       otherOptions(false)
@@ -341,7 +341,7 @@ function processLabelImage(url) {
   //       let ingResponse = ''
   //       let gifUrl = ''
   //       if (!isNaN(pictureData.sugars)) {
-  //         nutResponse += 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.' 
+  //         nutResponse += 'You will consume ' + pictureData.sugars + 'g of sugar in one serving: ' + pictureData.servingSize + '.'
   //         if (pictureData.sugars > 2) {
   //           gifUrl = getGifUrl(pictureData.sugars)
   //         }
