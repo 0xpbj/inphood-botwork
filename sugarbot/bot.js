@@ -53,7 +53,9 @@ function todaysSugarRecipe() {
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
   console.log('Inside not sugar checker', messageText)
-  if (sugarUtils.getSugarII(messageText) !== '') {
+  const result = sugarUtils.getSugarII(messageText)
+  if (result &&
+      result !== '') {
     return [
       `That's a processed sugar ingredient!`,
       otherOptions(false)
