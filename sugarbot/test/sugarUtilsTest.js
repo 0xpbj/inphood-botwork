@@ -46,6 +46,12 @@ http.createServer(function (request, response) {
     },
     "dried organic d-ribose" : {
       expected : "d-ribose"
+    },
+    "organic dried cane syrup" : {
+      expected : "cane syrup"
+    },
+    "organic cane syrup" : {
+      expected : "cane syrup"
     }
   }
   console.log('Testing getSugarII:')
