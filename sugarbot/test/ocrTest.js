@@ -17,7 +17,7 @@ http.createServer(function (request, response) {
   }
 
   const rp = require('request-promise')
-  const ocrUtils = require('./ocrUtils.js')
+  const ocrUtils = require('../ocrUtils.js')
 
   // const testImages = ['ingredients.no-sugars.jpg',
   //                     'ingredients.half-sugars.jpg',

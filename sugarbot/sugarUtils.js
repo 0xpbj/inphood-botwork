@@ -78,6 +78,112 @@ exports.indexOfSugarNames = function(messageText) {
   return sugarNames.indexOf(messageText)
 }
 
+function getLevThresholds(theIngredientWords) {
+  // Edit-distance thresholds for words of different character sizes--i.e.
+  // a word that is 8 characters long would use a threshold of 2.
+  const levThresholds = [
+    {strLength: 5, threshold: 1},
+    {strLength: 10, threshold: 2},
+    {strLength: 15, threshold: 3},
+    {strLength: 20, threshold: 4},
+    {strLength: 255, threshold: 5},
+  ]
+
+  // For each of theIngredientWords, determine the levenshtein threshold based
+  // on the strLength of the components words and put it in array to be returned.
+  // Example:
+  //         theIngredientWords = ['high', 'fructose', 'corn', 'syrup']
+  //         should return: [1, 2, 1, 1]
+  //
+  let ingWordsLevThresholds = []
+  for (let ingWord of theIngredientWords) {
+    const ingWordLen = ingWord.length
+
+    for (let levThreshold of levThresholds) {
+      if (ingWordLen <= levThreshold.strLength) {
+        ingWordsLevThresholds.push(levThreshold.threshold)
+        break
+      }
+    }
+  }
+
+  return ingWordsLevThresholds
+}
+
+function inThreshold(resultLevs, thresholdLevs) {
+  if (resultLevs.length !== thresholdLevs.length) {
+    // TODO: throw!
+    return false
+  }
+
+  for (let idx = 0; idx < resultLevs.length; idx++) {
+    if (resultLevs[idx] > thresholdLevs[idx]) {
+      return false
+    }
+  }
+
+  return true
+}
+
+// Determine if anIngredient is one of our known sugar Ingredients using some
+// multi-word specific matching tricks.
+//
+exports.getSugarII = function(anIngredient) {
+  // 1. Break down anIngredient into it's component words for analysis--for
+  //    instance:
+  //      high-fructose corn syrup  becomes ['high', 'fructose', 'corn', 'syrup']
+  //    Then we can look at each word in the array individually when comparing
+  //    to the known multi-word ingredients.
+  let ingWords = anIngredient.replace(/[ -]+/g, ' ').split(' ')
+  let ingWordsLevThresholds = getLevThresholds(ingWords)
+
+  // 2. Get the levenshtein thresholds for each word being compared
+  if (ingWordsLevThresholds === [] ||
+      ingWords.length !== ingWordsLevThresholds.length) {
+    // TODO: throw an error that can be caught in the chatbot and communicate an
+    //       issue to the user
+    return undefined
+  }
+
+  // 3. For each sugar ingredient, compare it to the ingredient words above and
+  //    compute a vector of the minimum levenshtein distances to each word--if
+  //    it is within the ingWordsLevThresholds vector, return this ingredient.
+  //
+  for (let sugarIng of sugarNames) {
+    // TODO: efficiency. (i.e. the word list should go into a file and get read
+    //                    once into a data structure of split words)
+    let sugarIngWords = sugarIng.replace(/[ -]+/g, ' ').split(' ')
+    let sugarIngLevs = []
+
+    for (let i = 0; i < ingWords.length; i++) {
+      const ingWord = ingWords[i]
+
+      let minLev = undefined
+      for (let sugarIngWord of sugarIngWords) {
+        // console.log('levenshtein of: ')
+        // console.log('  ingWord: ', ingWord)
+        // console.log('  sugarIngWord: ', sugarIngWord)
+
+        const lev = levenshtein.get(ingWord, sugarIngWord)
+        if (minLev === undefined || lev <= minLev) {
+          minLev = lev
+        }
+      }
+      sugarIngLevs.push(minLev)
+    }
+
+    // console.log('levs for ', anIngredient, ' (', sugarIng, '):')
+    // console.log('  sugarIngLevs: ', sugarIngLevs)
+    // console.log('  ingWordsLevThresholds: ', ingWordsLevThresholds)
+    // console.log('')
+    if (inThreshold(sugarIngLevs, ingWordsLevThresholds)) {
+      return sugarIng
+    }
+  }
+
+  return ''
+}
+
 // Iterate over all of the sugar names getting a levenshtein distance for each one
 // compared to anIngredient. Return the closest matching one.
 //
