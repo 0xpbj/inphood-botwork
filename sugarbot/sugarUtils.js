@@ -189,6 +189,29 @@ exports.getSugarII = function(anIngredient) {
   return ''
 }
 
+exports.capitalizeSugars = function(ingredientsList) {
+  // 1. lowercase the ingredients list string
+  const lcIngredientsList = ingredientsList.toLowerCase()
+
+  // 2. split it on commas to separate out ingredients
+  const lcIngredients = lcIngredientsList.split(',')
+
+  // 3. identify the sugars and capitalize them while reconstructing the
+  //    ingredients list
+  let ingredientsUpperCaseSugars = ''
+  for (let lcIngredient of lcIngredients) {
+    const trimLcIng = lcIngredient.trim()
+    const sugarResult = exports.getSugarII(trimLcIng)
+    if (sugarResult && sugarResult !== '') {
+      ingredientsUpperCaseSugars += trimLcIng.toUpperCase() + ', '
+    } else {
+      ingredientsUpperCaseSugars += trimLcIng + ', '
+    }
+  }
+
+  return ingredientsUpperCaseSugars.replace(/, $/g, '')
+}
+
 // Iterate over all of the sugar names getting a levenshtein distance for each one
 // compared to anIngredient. Return the closest matching one.
 //
