@@ -433,3 +433,229 @@ exports.getSugarFact=function() {
       }
   }
 }
+
+exports.getSugarRecipe=function(date) {
+  const day = date.getDate()
+  switch (day) {
+    case 1:
+      return {
+        recipe: 'Raspberry Ripple',
+        link: 'https://iquitsugar.com/recipe/my-raspberry-ripple/'
+      }
+    case 2: 
+      return {
+        recipe: "'Salted Caramel’ Haloumi + Apple",
+        link: 'https://iquitsugar.com/recipe/salted-caramel-haloumi-apple/'
+      }
+    case 3:
+      return {
+        recipe: 'Witlof Sardine Boats',
+        link: 'https://iquitsugar.com/recipe/witlof-sardine-boats/'
+      }
+    case 4:
+      return {
+        recipe: 'Crunchy-Nut Cheesecake',
+        link: 'https://iquitsugar.com/recipe/1059/'
+      }
+    case 5:
+      return {
+        recipe: 'Coco-Nutty Granola',
+        link: 'https://iquitsugar.com/recipe/coco-nutty-granola/'
+      }
+    case 6:
+      return {
+        recipe: 'Choc Berry Mud',
+        link: 'https://iquitsugar.com/recipe/choc-berry-mud/'
+      }
+    case 7:
+      return {
+        recipe: 'Pumpkin + Chia Muffins',
+        link: 'https://iquitsugar.com/recipe/pumpkin-chia-muffins/'
+      }
+    case 8:
+      return {
+        recipe: 'Bacon + Egg Cupcakes',
+        link: 'https://iquitsugar.com/recipe/bacon-egg-cupcakes/'
+      }
+    case 9:
+      return {
+        recipe: 'Almond Butter Bark',
+        link: 'https://iquitsugar.com/recipe/almond-butter-bark/'
+      }
+    case 10:
+      return {
+        recipe: 'Spicy Activated Nuts',
+        link: 'https://iquitsugar.com/recipe/activated-spicy-nuts/'
+      }
+    case 11:
+      return {
+        recipe: 'Chilli Tempeh Satay Tacos',
+        link: 'https://iquitsugar.com/recipe/chilli-tempeh-satay-tacos/'
+      }
+    case 12:
+      return {
+        recipe: 'Chilli Bacon + Eggs with Sweet Potato Hash',
+        link: 'https://iquitsugar.com/recipe/chilli-bacon-eggs-with-sweet-potato-hash/'
+      }
+    case 13:
+      return {
+        recipe: 'Spirulina Superfood Quinoa Salad',
+        link: 'https://www.mindbodygreen.com/0-10773/gluten-free-recipe-spirulina-superfood-quinoa-salad.html'
+      }
+    case 14:
+      return {
+        recipe: 'Turmeric Latte',
+        link: 'https://www.mindbodygreen.com/0-24409/a-tasty-turmeric-latte-for-immunity.html'
+      }
+    case 15:
+      return {
+        recipe: 'Grain-Free, Omega-Rich Flaxseed Bread Recipe',
+        link: 'https://www.mindbodygreen.com/0-10551/grain-free-omega-rich-flaxseed-bread-recipe.html'
+      }
+    case 16:
+      return {
+        recipe: 'Turmeric Smoothie With Bee Pollen',
+        link: 'https://www.mindbodygreen.com/0-17971/healing-warming-turmeric-smoothie-with-bee-pollen.html'
+      }
+    case 17:
+      return {
+        recipe: 'Quick Quinoa Fried "Rice"',
+        link: 'https://www.mindbodygreen.com/0-20340/cook-this-for-dinner-tonight-quick-quinoa-fried-rice.html'
+      }
+    case 18:
+      return {
+        recipe: 'Garlic Naan Recipe',
+        link: 'https://www.mindbodygreen.com/0-24900/a-turmeric-garlic-naan-recipe-thats-surprise-gluten-free.html'
+      }
+    case 19:
+      return {
+        recipe: 'Zesty Lemon Poppy Seed Bread',
+        link: 'https://www.mindbodygreen.com/0-26317/zesty-lemon-poppy-seed-bread-youll-never-believe-is-paleo-vegan-gluten-free.html'
+      }
+    case 20:
+      return {
+        recipe: 'Poached Salmon With Bacon',
+        link: 'https://www.mindbodygreen.com/0-24791/a-simple-delicious-salmon-dinner-that-only-takes-15-minutes.html'
+      }
+    case 21:
+      return {
+        recipe: 'Perfect Green Smoothie',
+        link: 'https://www.mindbodygreen.com/0-27424/bookmark-this-the-only-formula-you-need-for-a-perfect-green-smoothie-every-time.html'
+      }
+    case 22:
+      return {
+        recipe: 'Creamy Buffalo Chicken Pasta',
+        link: 'http://livinglovingpaleo.com/2016/05/20/creamy-buffalo-chicken-pasta/'
+      }
+    case 23:
+      return {
+        recipe: 'Yogurt Chicken Curry',
+        link: 'http://www.chefdehome.com/Recipes/736/yogurt-chicken-curry'
+      }
+    case 24:
+      return {
+        recipe: 'Taco Stuffed Sweet Potato',
+        link: 'http://www.spinach4breakfast.com/taco-stuffed-sweet-potato/'
+      }
+    case 25:
+      return {
+        recipe: 'Chicken, Sweet Potato, and Coconut Stew',
+        link: 'http://www.chewoutloud.com/2017/01/19/chicken-sweet-potato-and-coconut-stew/'
+      }
+    case 26:
+      return {
+        recipe: 'Easy 30-Minute Turkey Chili',
+        link: 'https://www.averiecooks.com/2017/02/easy-30-minute-turkey-chili.html#'
+      }
+    case 27:
+      return {
+        recipe: 'Weeknight Sesame Steak Salad',
+        link: 'http://pdxfoodlove.com/2017/01/13/weeknight-sesame-steak-salad/'
+      }
+    case 28:
+      return {
+        recipe: 'Peanut Broccoli and Pork Stir-Fry',
+        link: 'http://www.nutritionistreviews.com/2017/02/peanut-broccoli-pork-stir-fry.html'
+      }
+    case 29:
+      return {
+        recipe: 'One-Pot Beef and Tomato Macaroni Soup',
+        link: 'http://www.thereciperebel.com/one-pot-beef-and-tomato-macaroni-soup/'
+      }
+    case 30:
+      return {
+        recipe: "Grandma's One-Pan Hamburger Helper",
+        link: 'http://www.theseasonedmom.com/grandmas-one-pan-hamburger-helper/'
+      }
+    case 31:
+      return {
+        recipe: 'Spring Pea Resotto',
+        link: 'http://www.kiwiandcarrot.com/spring-pea-risotto/'
+      }
+    case 32:
+      return {
+        recipe: 'Yellow Rice Pork Chop Bake',
+        link: 'https://fooddonelight.com/yellow-rice-pork-chop-bake/'
+      }
+    case 33:
+      return {
+        recipe: 'Baked Pesto Salmon',
+        link: 'http://skinnyfitalicious.com/baked-pesto-salmon/'
+      }
+    case 34:
+      return {
+        recipe: 'Avocado Tuna Cakes',
+        link: 'http://www.wellplated.com/tuna-cakes/'
+      }
+    case 35:
+      return {
+        recipe: 'Pineapple Chipotle Salmon Tostadas',
+        link: 'http://www.joyfulhealthyeats.com/pineapple-chipotle-salmon-tostadas/'
+      }
+    case 36:
+      return {
+        recipe: 'Cajun Shrimp and Rice',
+        link: 'http://www.everydayeasyeats.com/cajun-shrimp-and-rice-recipe/'
+      }
+    case 37:
+      return {
+        recipe: 'Shrimp, Orzo, Spinach, and Feta Casserole',
+        link: 'http://www.thestraightdish.com/shrimp-orzo-spinach-and-feta-casserole-sunday-dinner/'
+      }
+    case 38:
+      return {
+        recipe: 'Panfried Halibut With Grapefruit and Mango Salsa',
+        link: 'http://cookswithcocktails.com/perfectly-panfried-halibut-with-grapefruit-mango-salsa/'
+      }
+    case 39:
+      return {
+        recipe: 'Easy Tilapia Pomodoro',
+        link: 'http://mylifecookbook.com/2014/08/15/easy-tilapia-pomodoro-dinner/'
+      }
+    case 40:
+      return {
+        recipe: 'Garlic Asparagus Artichoke Pasta',
+        link: 'http://pumpkinandpeanutbutter.com/2017/03/28/garlic-asparagus-artichoke-pasta/'
+      }
+    case 41:
+      return {
+        recipe: 'Pad Thai Zucchini Noodle Quinoa Salad',
+        link: 'https://www.simplyquinoa.com/pad-thai-zucchini-noodle-quinoa-salad/'
+      }
+    case 42:
+      return {
+        recipe: 'Vegetable Samosa Bowl',
+        link: 'http://www.kristinkitchen.com/blog/2017/2/26/vegetable-samosa-bowl'
+      }
+    case 43:
+      return {
+        recipe: 'Easy Tempeh Fajitas',
+        link: 'http://bbritnell.com/easy-tempeh-fajitas/'
+      }
+    case 45:
+      return {
+        recipe: 'Lentil Sloppy Joes',
+        link: 'http://modernlittlevictories.com/2017/02/27/lentil-sloppy-joes-vegan-gf/'
+      }
+  }
+}

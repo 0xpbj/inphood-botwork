@@ -108,6 +108,7 @@ exports.processGvResponse = function(responses) {
 
   // 1. lowercase text
   const lcText = text.toLowerCase()
+  // console.log('************Google Vision String: ', lcText)
 
   // 2. try to get nutrition label information:
   //  a. serving size
