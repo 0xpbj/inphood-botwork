@@ -285,11 +285,13 @@ function processLabelImage(url) {
       const frequest = require('request-promise')
       return frequest(fdaOptions)
       .then(fdaResult => {
+        // if (fdaResult.body.list.item)
         const resText = 'We found ' + fdaResult.body.list.item[0].name + '. Nutrition information is coming soon...'
         return resText
       })
       .catch(error => {
         console.log('FDA failed', error)
+        return 'Item not found in FDA DB'
       })
     })
     .catch(() => {
@@ -413,6 +415,25 @@ function processLabelImage(url) {
   // })
 // }
 
+function getWolfram(messageText) {
+  const url = 'http://api.wolframalpha.com/v1/result?appid=WX84WV-R3THG2XT6L&i=' + encodeURI(messageText)
+  console.log('Wolfram URL', url)
+  const request = require('request-promise')
+  let wolfOptions = {
+    uri: url,
+    method: 'GET',
+    resolveWithFullResponse: true
+  }
+  return request(wolfOptions)
+  .then(result => {
+    console.log('Wolfram response', result.body)
+    return "Here's what I found: " + result.body
+    // return new fbTemplate
+    // .Image(result.body)
+    // .get()
+  })
+}
+
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
     var messageText = request.text ? request.text.toLowerCase() : null
@@ -459,7 +480,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           ]
         }
         default: {
-          return otherOptions(true)
+          return getWolfram(messageText)
+          // return otherOptions(true)
         }
       }
     }
