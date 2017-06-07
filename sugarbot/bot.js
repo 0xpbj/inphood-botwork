@@ -78,7 +78,7 @@ function startMessage() {
     new fbTemplate.Generic()
     .addBubble('Nutrition Label Analysis', 'Send me a photo of your nutrition label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/nutrition.png')
-      .addButton('Analyze Nutrition 🔬', 'send nutrition label')
+      .addButton('Analyze Nutrition 🔬', 'analyze nutrition')
     .addBubble('Ingredient Label Analysis', 'Send me a photo of your ingredient label to analyze')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/ingredients.png')
       .addButton('Check Ingredients ‍💻', 'send ingredient label')
@@ -105,21 +105,21 @@ function otherOptions(option) {
   // }
   // else if (option === 2) {
   //   return new fbTemplate.Button('What next?')
-  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Analyze Nutrition', 'analyze nutrition')
   //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
   //     .addButton('Processed Sugar?', 'Processed Sugar?')
   //     .get();
   // }
   // else if (option === 3) {
   //   return new fbTemplate.Button('What next?')
-  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Analyze Nutrition', 'analyze nutrition')
   //     .addButton('Analyze Ingredients', 'send ingredient label')
   //     .addButton('Processed Sugar?', 'Processed Sugar?')
   //     .get();
   // }
   // else if (option === 4) {
   //   return new fbTemplate.Button('What next?')
-  //     .addButton('Analyze Nutrition', 'send nutrition label')
+  //     .addButton('Analyze Nutrition', 'analyze nutrition')
   //     .addButton('Analyze Ingredients', 'send ingredient label')
   //     .addButton('Random Sugar Fact', 'Random Sugar Facts')
   //     .get();
@@ -128,7 +128,7 @@ function otherOptions(option) {
     return [
       "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
-        .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
+        .addQuickReply('Analyze Nutrition 🔬', 'analyze nutrition')
         .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
         .addQuickReply('Sugar Free Recipe 📅', 'recipe')
         .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
@@ -137,7 +137,7 @@ function otherOptions(option) {
   }
   else {
     return new fbTemplate.Text('What would you like to do next?')
-      .addQuickReply('Analyze Nutrition 🔬', 'send nutrition label')
+      .addQuickReply('Analyze Nutrition 🔬', 'analyze nutrition')
       .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
       .addQuickReply('Sugar Free Recipe 📅', 'recipe')
       .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
@@ -238,7 +238,13 @@ function getBarcodeAsync(param){
   })
 }
 
-function processLabelImage(url) {
+
+
+let upcFlag = false
+let cvFlag = false
+let questionFlag = false
+let wolfText = ''
+function processLabelImage(url, userId, upcFlag, cvFlag) {
   // return url
   let encoding = 'base64'
   var fbOptions = {
@@ -254,54 +260,84 @@ function processLabelImage(url) {
   return request(fbOptions)
   .then(result => {
     var isJpg = url.indexOf(".jpg")
-    const barcode = (isJpg > -1) ? 'data:image/jpg;base64,' + result.body : 'data:image/png;base64,' + result.body
-    return getBarcodeAsync({
-      numOfWorkers: 0,  // Needs to be 0 when used within node
-      inputStream: {
-        size: 800  // restrict input-size to be 800px in width (long-side)
-      },
-      decoder: {
-        readers: ["upc_reader"] // List of active readers
-      },
-      locate: true, // try to locate the barcode in the image
-      src: barcode // or 'data:image/jpg;base64,' + data
-    })
-    .then(response => {
-      console.log('Code in then block', response)
-      const barcodeResponse = 'Barcode Found: ' + response
-      // return barcodeResponse
-      let fdaOptions = {
-        uri: 'https://api.nal.usda.gov/ndb/search/',
-        method: 'GET',
-        qs: {
-          format: 'json',
-          q: response,
-          sort: 'n',
-          max: 2,
-          offset: 0,
-          api_key: 'hhgb2UmFJsDxzsslo5ZlNHyR6vIZIbEXO83lMTRt'
+    if (upcFlag) {
+      const barcode = (isJpg > -1) ? 'data:image/jpg;base64,' + result.body : 'data:image/png;base64,' + result.body
+      return getBarcodeAsync({
+        numOfWorkers: 0,  // Needs to be 0 when used within node
+        inputStream: {
+          size: 800  // restrict input-size to be 800px in width (long-side)
         },
-        json: true,
-        resolveWithFullResponse: true
-      }
-      const frequest = require('request-promise')
-      return frequest(fdaOptions)
-      .then(fdaResult => {
-        // if (fdaResult.body.list.item)
-        const resText = 'We found ' + fdaResult.body.list.item[0].name + '. Nutrition information is coming soon...'
-        return resText
+        decoder: {
+          readers: ["upc_reader"] // List of active readers
+        },
+        locate: true, // try to locate the barcode in the image
+        src: barcode // or 'data:image/jpg;base64,' + data
       })
-      .catch(error => {
-        console.log('FDA failed', error)
-        return 'Item not found in FDA DB'
+      .then(response => {
+        console.log('Code in then block', response)
+        const barcodeResponse = 'Barcode Found: ' + response
+        let fdaOptions = {
+          uri: 'https://api.nal.usda.gov/ndb/search/',
+          method: 'GET',
+          qs: {
+            format: 'json',
+            q: response,
+            sort: 'n',
+            max: 2,
+            offset: 0,
+            api_key: 'hhgb2UmFJsDxzsslo5ZlNHyR6vIZIbEXO83lMTRt'
+          },
+          json: true,
+          resolveWithFullResponse: true
+        }
+        const frequest = require('request-promise')
+        return frequest(fdaOptions)
+        .then(fdaResult => {
+          // if (fdaResult.body.list.item)
+          const foodName = fdaResult.body.list.item[0].name
+          const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
+          var fulldate = Date.now()
+          var dateValue = new Date(fulldate)
+          var date = dateValue.toDateString()
+          firebase.auth().signInAnonymously()
+          .then(() => {
+            var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
+            userRef.push({
+              // add sugar information here
+              foodName,
+              dateValue,
+              userId,
+            })
+          })
+          .catch(error => {
+            console.log('Firebase auth error', error.message)
+          })
+          return resText
+        })
+        .catch(error => {
+          console.log('FDA failed', error)
+          return 'Item not found in FDA DB'
+        })
       })
-    })
-    .catch(() => {
-      return 'NULL BARCODE'
-    })
+      .catch(() => {
+        upcFlag = true
+        return "I couldn't read that barcode...can you send me a better picture?"
+      })
+    }
+    else if (cvFlag) {
+      return 'Work in progress'
+    }
   })
   .catch(err => {
-    return 'No text found in the image.'
+    console.log("error: ", err)
+    return [
+      'Looks like you confused me...can you help me out?',
+      new fbTemplate.Text("Ok, here are your options.")
+      .addQuickReply('Check UPC Label 🏷', 'send upc label')
+      .addQuickReply('Send food image 🥗', 'send food picture')
+      .addQuickReply('Ask a food question? ❓', 'food question')
+      .get()
+    ]
   })
 }
     // console.log('Image buffer', result.body)
@@ -418,8 +454,8 @@ function processLabelImage(url) {
 // }
 
 function getWolfram(messageText) {
+  wolfText = messageText
   const url = 'http://api.wolframalpha.com/v1/result?appid=WX84WV-R3THG2XT6L&i=' + encodeURI(messageText)
-  console.log('Wolfram URL', url)
   const request = require('request-promise')
   let wolfOptions = {
     uri: url,
@@ -428,35 +464,189 @@ function getWolfram(messageText) {
   }
   return request(wolfOptions)
   .then(result => {
-    console.log('Wolfram response', result.body)
-    return "Here's what I found: " + result.body
-    // return new fbTemplate
-    // .Image(result.body)
-    // .get()
+    let text = result.body
+    return [
+      text,
+      new fbTemplate.Text("What do you want to do next?")
+        .addQuickReply('Main Menu 🎟', 'main menu')
+        .addQuickReply('More Details 📚', 'more details')
+        .get()
+    ]
+  })
+  .catch(error => {
+    return "Hmm....can you please re-phrase your question (ex: 'how much sugar in a apple?')"
+  })
+}
+
+function detailedWolfram(messageText) {
+  const url = 'http://api.wolframalpha.com/v1/simple?appid=WX84WV-R3THG2XT6L&i=' + encodeURI(messageText)
+  const request = require('request-promise')
+  let wolfOptions = {
+    encoding: 'base64',
+    uri: url,
+    method: 'GET',
+    resolveWithFullResponse: true
+  }
+  return request(wolfOptions)
+  .then(result => {
+    let imgSrc = new Buffer(result.body,'base64')
+    const S3 = require('aws-sdk').S3
+    const s3 = new S3({
+      accessKeyId:     'AKIAI25XHNISG4KDDM3Q',
+      secretAccessKey: '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',
+      region: 'us-west-2',
+    })
+    const key = Date.now()
+    const params = {
+      Bucket: 'inphoodlabelimagescdn',
+      Key: 'chatbot/' + key +  '.gif',
+      Body: imgSrc,
+      ContentEncoding: 'base64',
+      ContentType: 'image/gif',
+      ACL: 'public-read'
+    }
+    const s3promise = s3.upload(params).promise()
+    return s3promise
+    .then(info => {
+      const dataUrl = 'https://doowizp5r3uvo.cloudfront.net/chatbot/' + key + '.gif'
+      return [
+        "Bam!",
+        new fbTemplate
+        .Image(dataUrl)
+        .get(),
+        otherOptions(false)
+      ]
+    })
+    .catch(error => console.log(error));
+  })
+}
+
+function trackUserProfile(userId) {
+  const firebase = require('firebase')
+  const fbConfig = {
+    apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
+    authDomain: 'inphooddb-e0dfd.firebaseapp.com',
+    databaseURL: 'https://inphooddb-e0dfd.firebaseio.com',
+    projectId: 'inphooddb-e0dfd',
+    storageBucket: 'inphooddb-e0dfd.appspot.com',
+    messagingSenderId: '529180412076'
+  }
+  if (firebase.apps.length === 0) {
+    firebase.initializeApp(fbConfig)
+  }
+  var fbOptions = {
+    uri: 'https://graph.facebook.com/v2.6/' + userId,
+    method: 'GET',
+    json: true,
+    qs: {
+      fields: 'first_name,last_name,profile_pic,locale,timezone,gender',
+      access_token: 'EAAJhTtF5K30BAObDIIHWxtZA0EtwbVX6wEciIZAHwrwBJrXVXFZCy69Pn07SoyzZAeZCEmswE0jUzamY7Nfy71cZB8O7BSZBpTZAgbDxoYEE5Og7nbkoQvMaCafrBkH151s4wl91zOCLbafkdJiWLIc6deW9jSZBYdjh2NE4JbDSZBAwZDZD'
+    },
+    resolveWithFullResponse: true
+  }
+  const request = require('request-promise')
+  return request(fbOptions)
+  .then(result => {
+    console.log('Result', result)
+    const data = result.body
+    console.log('Data', data)
+    const {first_name, last_name, profile_pic, locale, timezone, gender} = data
+    firebase.auth().signInAnonymously()
+    .then(() => {
+      var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/profile")
+      userRef.update({
+        first_name,
+        last_name,
+        profile_pic,
+        locale,
+        timezone,
+        gender,
+        userId,
+        // is_payment_enabled
+      })
+    })
+    .catch(error => {
+      console.log('Firebase auth error', error.message)
+    })
+  })
+  .catch(error => {
+    console.log('Something went wrong', error)
   })
 }
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
     var messageText = request.text ? request.text.toLowerCase() : null
+    console.log('Request', request)
+    console.log(messageText)
+    console.log(wolfText)
+    const userId = request.originalRequest.sender.id
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (sugarCheckerFlag && messageText) {
       sugarCheckerFlag = false
       return sugarChecker(messageText)
     }
+    else if (questionFlag && messageText) {
+      questionFlag = false
+      return getWolfram(messageText)
+    }
+    else if (upcFlag && messageAttachments) {
+      const {url} = messageAttachments[0].payload
+      upcFlag = false
+      trackUser(userId)
+      return processLabelImage(url, userId, true, false)
+    }
+    else if (cvFlag && messageAttachments) {
+      const {url} = messageAttachments[0].payload
+      cvFlag = false
+      trackUser(userId)
+      return processLabelImage(url, userId, false, true)
+    }
+    else if (messageText === 'more details') {
+      console.log('In more details', wolfText)
+      let text = wolfText
+      wolfText = ''
+      return detailedWolfram(text)
+    }
     else if (messageText) {
+      questionFlag = false
       sugarCheckerFlag = false
+      upcFlag = false
+      cvFlag = false
       switch (messageText) {
+        case 'main menu':
         case 'help':
+        case 'hello':
         case 'get started': {
           return otherOptions(true)
         }
-        case 'send nutrition label': {
+        case 'analyze nutrition': {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the product barcode.`
+            new fbTemplate.Text("Ok, here are your options.")
+            .addQuickReply('Check UPC Label 🏷', 'send upc label')
+            .addQuickReply('Send food image 🥗', 'send food picture')
+            .addQuickReply('Ask a food question? ❓', 'food question')
+            .get()
           ]
+        }
+        case 'send upc label':
+        case 'upc label':
+        case 'upc': {
+          upcFlag = true
+          return 'Please send me a picture of the UPC label you want to check'
+        }
+        case 'food question':
+        case 'question': {
+          questionFlag = true
+          return 'What would you like to know?'
+        }
+        case 'send food picture':
+        case 'food picture':
+        case 'picture': {
+          cvFlag = true
+          return "Please send me a picture of your meal and I'll try to guess what you're eating"
         }
         case 'another random sugar fact':
         case 'hit me with a fact':
@@ -487,9 +677,16 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
       }
     }
-    else if (messageAttachments) {
-      const {url} = messageAttachments[0].payload
-      return processLabelImage(url)
+    else {
+      return [
+        new fbTemplate.ChatAction('typing_on').get(),
+        new fbTemplate.Pause(100).get(),
+        new fbTemplate.Text("Ok, here are your options.")
+        .addQuickReply('Check UPC Label 🏷', 'send upc label')
+        .addQuickReply('Send food image 🥗', 'send food picture')
+        .addQuickReply('Ask a food question? ❓', 'food question')
+        .get()
+      ]
     }
   }
 }, { platforms: ['facebook'] });
