@@ -5,6 +5,19 @@ const sugarUtils = require('./sugarUtils.js')
 const utils = require('./utils.js')
 const fbTemplate = botBuilder.fbTemplate;
 
+const firebase = require('firebase')
+const fbConfig = {
+  apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
+  authDomain: 'inphooddb-e0dfd.firebaseapp.com',
+  databaseURL: 'https://inphooddb-e0dfd.firebaseio.com',
+  projectId: 'inphooddb-e0dfd',
+  storageBucket: 'inphooddb-e0dfd.appspot.com',
+  messagingSenderId: '529180412076'
+}
+if (firebase.apps.length === 0) {
+  firebase.initializeApp(fbConfig)
+}
+
 function randomSugarFacts() {
   const data = sugarUtils.getSugarFact()
   return [
@@ -227,8 +240,9 @@ let upcFlag = false
 let cvFlag = false
 let questionFlag = false
 let wolfText = ''
-function processLabelImage(url, userId, upcFlag, cvFlag) {
+function processLabelImage(url, userId, lupcFlag, lcvFlag) {
   // return url
+  console.log('IN PROCESS IMAGE', lupcFlag, lcvFlag)
   let encoding = 'base64'
   var fbOptions = {
     encoding: encoding,
@@ -243,8 +257,7 @@ function processLabelImage(url, userId, upcFlag, cvFlag) {
   return request(fbOptions)
   .then(result => {
     var isJpg = url.indexOf(".jpg")
-
-    if (upcFlag) {
+    if (lupcFlag) {
       const barcode = (isJpg > -1) ? 'data:image/jpg;base64,' + result.body : 'data:image/png;base64,' + result.body
       return utils.getBarcodeAsync({
         numOfWorkers: 0,  // Needs to be 0 when used within node
@@ -280,7 +293,6 @@ function processLabelImage(url, userId, upcFlag, cvFlag) {
           // if (fdaResult.body.list.item)
           const foodName = fdaResult.body.list.item[0].name
           const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
-
           // This report prints out information about the item from the FDA database
           // corresponding to the given ndbno. For instance for Prabhaav Jam this would
           // be in the console.log:
@@ -292,7 +304,6 @@ function processLabelImage(url, userId, upcFlag, cvFlag) {
           //
           const ndbno = fdaResult.body.list.item[0].ndbno
           return utils.getUsdaReport(ndbno)
-
           var fulldate = Date.now()
           var dateValue = new Date(fulldate)
           var date = dateValue.toDateString()
@@ -321,7 +332,7 @@ function processLabelImage(url, userId, upcFlag, cvFlag) {
         return "I couldn't read that barcode...can you send me a better picture?"
       })
     }
-    else if (cvFlag) {
+    else if (lcvFlag) {
       return 'Work in progress'
     }
   })
@@ -519,18 +530,6 @@ function detailedWolfram(messageText) {
 }
 
 function trackUserProfile(userId) {
-  const firebase = require('firebase')
-  const fbConfig = {
-    apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
-    authDomain: 'inphooddb-e0dfd.firebaseapp.com',
-    databaseURL: 'https://inphooddb-e0dfd.firebaseio.com',
-    projectId: 'inphooddb-e0dfd',
-    storageBucket: 'inphooddb-e0dfd.appspot.com',
-    messagingSenderId: '529180412076'
-  }
-  if (firebase.apps.length === 0) {
-    firebase.initializeApp(fbConfig)
-  }
   var fbOptions = {
     uri: 'https://graph.facebook.com/v2.6/' + userId,
     method: 'GET',
@@ -590,13 +589,13 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     else if (upcFlag && messageAttachments) {
       const {url} = messageAttachments[0].payload
       upcFlag = false
-      trackUser(userId)
+      trackUserProfile(userId)
       return processLabelImage(url, userId, true, false)
     }
     else if (cvFlag && messageAttachments) {
       const {url} = messageAttachments[0].payload
       cvFlag = false
-      trackUser(userId)
+      trackUserProfile(userId)
       return processLabelImage(url, userId, false, true)
     }
     else if (messageText === 'more details') {
@@ -612,7 +611,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       cvFlag = false
       switch (messageText) {
         case 'main menu':
+        case 'menu':
+        case '?':
         case 'help':
+        case 'hi':
         case 'hello':
         case 'get started': {
           return otherOptions(true)
@@ -624,7 +626,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             new fbTemplate.Text("Ok, here are your options.")
             .addQuickReply('Check UPC Label 🏷', 'send upc label')
             .addQuickReply('Send food image 🥗', 'send food picture')
-            .addQuickReply('Ask a food question? ❓', 'food question')
+            .addQuickReply('Food question? 📝', 'food question')
             .get()
           ]
         }
