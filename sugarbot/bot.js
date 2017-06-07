@@ -224,15 +224,11 @@ function getGifUrl(number) {
 function getBarcodeAsync(param){
   return new Promise((resolve, reject) => {
     Quagga.decodeSingle(param, (data) => {
-      console.log('In async block')
-      console.log('Type of check', typeof(data))
       console.log(data)
       if (typeof(data) === 'undefined') {
-        console.log('First reject clause')
         return reject('error');
       }
       else if (!data.codeResult) {
-        console.log('Second reject clause')
         return reject('error');
       }
       resolve(data.codeResult.code);
@@ -252,7 +248,6 @@ function processLabelImage(url) {
     resolveWithFullResponse: true,
     headers: {Authorization: "Bearer 'EAAJhTtF5K30BAObDIIHWxtZA0EtwbVX6wEciIZAHwrwBJrXVXFZCy69Pn07SoyzZAeZCEmswE0jUzamY7Nfy71cZB8O7BSZBpTZAgbDxoYEE5Og7nbkoQvMaCafrBkH151s4wl91zOCLbafkdJiWLIc6deW9jSZBYdjh2NE4JbDSZBAwZDZD'"}
   }
-  console.log('URL processing', url)
   const request = require('request-promise')
   return request(fbOptions)
   .then(result => {
@@ -272,10 +267,32 @@ function processLabelImage(url) {
     .then(response => {
       console.log('Code in then block', response)
       const barcodeResponse = 'Barcode Found: ' + response
-      return barcodeResponse
+      // return barcodeResponse
+      let fdaOptions = {
+        uri: 'https://api.nal.usda.gov/ndb/search/',
+        method: 'GET',
+        qs: {
+          format: 'json',
+          q: response,
+          sort: 'n',
+          max: 2,
+          offset: 0,
+          api_key: 'hhgb2UmFJsDxzsslo5ZlNHyR6vIZIbEXO83lMTRt'
+        },
+        json: true,
+        resolveWithFullResponse: true
+      }
+      const frequest = require('request-promise')
+      return frequest(fdaOptions)
+      .then(fdaResult => {
+        const resText = 'We found ' + fdaResult.body.list.item[0].name + '. Nutrition information is coming soon...'
+        return resText
+      })
+      .catch(error => {
+        console.log('FDA failed', error)
+      })
     })
     .catch(() => {
-      console.log('Code in error block')
       return 'NULL BARCODE'
     })
   })
@@ -415,8 +432,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return [
             new fbTemplate.ChatAction('typing_on').get(),
             new fbTemplate.Pause(100).get(),
-            `Ok, please send me a picture of the nutrition label. You can also send me an ingredient list to analyze.`,
-            `(Note: horizontal labels are not currently supported).`
+            `Ok, please send me a picture of the product barcode.`
           ]
         }
         case 'another random sugar fact':
