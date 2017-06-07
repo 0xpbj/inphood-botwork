@@ -135,7 +135,13 @@ exports.getSugarII = function(anIngredient) {
   //      high-fructose corn syrup  becomes ['high', 'fructose', 'corn', 'syrup']
   //    Then we can look at each word in the array individually when comparing
   //    to the known multi-word ingredients.
-  let ingWords = anIngredient.replace(/[ -]+/g, ' ').split(' ')
+  const ingredientLc = anIngredient.toLowerCase()
+  const noadjIngredientLc = ingredientLc.replace(/organic|dried/g, '').trim()
+  let ingWords = noadjIngredientLc.replace(/[ -]+/g, ' ').split(' ')
+  // 1. a  Remove adjectives that confuse matching, for instance:
+  //         - organic
+  //         - dried
+
   let ingWordsLevThresholds = getLevThresholds(ingWords)
 
   // 2. Get the levenshtein thresholds for each word being compared

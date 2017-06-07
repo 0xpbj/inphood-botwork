@@ -37,6 +37,15 @@ http.createServer(function (request, response) {
     },
     "moltodekstrin" : {
       expected : "maltodextrin"
+    },
+    "organic maltodextrin" : {
+      expected : "maltodextrin"
+    },
+    "organic dried maltodextrin" : {
+      expected : "maltodextrin"
+    },
+    "dried organic d-ribose" : {
+      expected : "d-ribose"
     }
   }
   console.log('Testing getSugarII:')
