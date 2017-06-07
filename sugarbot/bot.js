@@ -292,7 +292,7 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
         .then(fdaResult => {
           // if (fdaResult.body.list.item)
           const foodName = fdaResult.body.list.item[0].name
-          const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
+          // const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
           // This report prints out information about the item from the FDA database
           // corresponding to the given ndbno. For instance for Prabhaav Jam this would
           // be in the console.log:
@@ -303,24 +303,37 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
           //
           //
           const ndbno = fdaResult.body.list.item[0].ndbno
-          return utils.getUsdaReport(ndbno)
-          var fulldate = Date.now()
-          var dateValue = new Date(fulldate)
-          var date = dateValue.toDateString()
-          firebase.auth().signInAnonymously()
-          .then(() => {
-            var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
-            userRef.push({
-              // add sugar information here
-              foodName,
-              dateValue,
-              userId,
-            })
+          let report = utils.getUsdaReport(ndbno)
+          return report.then(fdaResponse => {
+            console.log('This is FDA Response', fdaResponse)
+            const {error, sugarPerServing, ingredientsSugarsCaps} = fdaResponse
+            console.log('FDA Properties', error, sugarPerServing, ingredientsSugarsCaps)
+            if (sugarPerServing && ingredientsSugarsCaps) {
+              var fulldate = Date.now()
+              var dateValue = new Date(fulldate)
+              var date = dateValue.toDateString()
+              firebase.auth().signInAnonymously()
+              .then(() => {
+                var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
+                userRef.push({
+                  // add sugar information here
+                  foodName,
+                  dateValue,
+                  userId,
+                })
+              })
+              .catch(ferror => {
+                console.log('Firebase auth error', ferror.message)
+              })
+              return [
+                sugarPerServing,
+                'Ingredients (sugars in caps): ' + ingredientsSugarsCaps
+              ]
+            }
+            else {
+              throw 'fda response was undefined'
+            }
           })
-          .catch(error => {
-            console.log('Firebase auth error', error.message)
-          })
-          return resText
         })
         .catch(error => {
           console.log('FDA failed', error)
@@ -343,7 +356,7 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
       new fbTemplate.Text("Ok, here are your options.")
       .addQuickReply('Check UPC Label 🏷', 'send upc label')
       .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Ask a food question? ❓', 'food question')
+      .addQuickReply('Ask a food question? 📝', 'food question')
       .get()
     ]
   })
@@ -683,7 +696,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         new fbTemplate.Text("Ok, here are your options.")
         .addQuickReply('Check UPC Label 🏷', 'send upc label')
         .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Ask a food question? ❓', 'food question')
+        .addQuickReply('Ask a food question? 📝', 'food question')
         .get()
       ]
     }
