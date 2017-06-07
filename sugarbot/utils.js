@@ -61,10 +61,12 @@ exports.getUsdaReport = function(ndbno) {
 
         let eunit = measure.eunit
 
-        let sugarPerServing = measure.qty + ' ' + measure.label
-        sugarPerServing += ' (' + measure.eqv + eunit + ') contains '
+        let sugarPerServing = ''
         sugarPerServing += measure.value + eunit + ' '
         sugarPerServing += nutrient.name.toLowerCase().replace(/,.*/g, '')
+        sugarPerServing += ' in a '
+        sugarPerServing += measure.qty + ' ' + measure.label
+        sugarPerServing += ' (' + measure.eqv + eunit + ') serving'
         result.sugarPerServing = sugarPerServing
 
         break
