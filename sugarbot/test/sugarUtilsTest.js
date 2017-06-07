@@ -40,6 +40,7 @@ http.createServer(function (request, response) {
     }
   }
   console.log('Testing getSugarII:')
+  console.log('---------------------------------------------------------------')
   for (let testSugar in isSugarTests) {
     console.log('testSugar: ', testSugar)
     const result = sugarUtils.getSugarII(testSugar)
@@ -52,6 +53,9 @@ http.createServer(function (request, response) {
       console.log('  PASS: found ', expected, ' for ', testSugar)
     }
   }
+  console.log('beer test:')
+  console.log('---------------------------------------------------------------')
+  console.log('getSugarII(\'beer\') = ', sugarUtils.getSugarII('beer'))
 
 
   return

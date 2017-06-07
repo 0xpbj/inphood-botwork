@@ -113,6 +113,7 @@ function getLevThresholds(theIngredientWords) {
 function inThreshold(resultLevs, thresholdLevs) {
   if (resultLevs.length !== thresholdLevs.length) {
     // TODO: throw!
+    // console.log('ERROR: inequal array lengths')
     return false
   }
 
@@ -157,6 +158,10 @@ exports.getSugarII = function(anIngredient) {
 
     for (let i = 0; i < ingWords.length; i++) {
       const ingWord = ingWords[i]
+
+      if (sugarIngWords.length !== ingWords.length) {
+        continue
+      }
 
       let minLev = undefined
       for (let sugarIngWord of sugarIngWords) {
@@ -548,7 +553,7 @@ exports.getSugarRecipe=function(date) {
         recipe: 'Raspberry Ripple',
         link: 'https://iquitsugar.com/recipe/my-raspberry-ripple/'
       }
-    case 2: 
+    case 2:
       return {
         recipe: "'Salted Caramel’ Haloumi + Apple",
         link: 'https://iquitsugar.com/recipe/salted-caramel-haloumi-apple/'
