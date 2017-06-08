@@ -4,6 +4,7 @@ const ocrUtils = require('./ocrUtils.js')
 const sugarUtils = require('./sugarUtils.js')
 const utils = require('./utils.js')
 const fbTemplate = botBuilder.fbTemplate;
+const Clarifai = require('clarifai');
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -39,7 +40,8 @@ function todaysSugarRecipe() {
     new fbTemplate.Pause(100).get(),
     // "Processing label. Here's a random nutrition fact while you wait: ",
     message,
-    data.recipe + ': ' + data.link
+    data.recipe + ': ' + data.link,
+    otherOptions(false)
   ]
 }
 
@@ -65,7 +67,6 @@ function todaysSugarRecipe() {
 
 let sugarCheckerFlag = false
 function sugarChecker(messageText) {
-  console.log('Inside not sugar checker', messageText)
   const result = sugarUtils.getSugarII(messageText)
   if (result &&
       result !== '') {
@@ -271,7 +272,6 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
         src: barcode // or 'data:image/jpg;base64,' + data
       })
       .then(response => {
-        console.log('Code in then block', response)
         const barcodeResponse = 'Barcode Found: ' + response
         let fdaOptions = {
           uri: 'https://api.nal.usda.gov/ndb/search/',
@@ -305,9 +305,7 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
           const ndbno = fdaResult.body.list.item[0].ndbno
           let report = utils.getUsdaReport(ndbno)
           return report.then(fdaResponse => {
-            console.log('This is FDA Response', fdaResponse)
             const {error, sugarPerServing, ingredientsSugarsCaps} = fdaResponse
-            console.log('FDA Properties', error, sugarPerServing, ingredientsSugarsCaps)
             if (sugarPerServing && ingredientsSugarsCaps) {
               var fulldate = Date.now()
               var dateValue = new Date(fulldate)
@@ -327,7 +325,8 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
               })
               return [
                 sugarPerServing,
-                'Ingredients (sugars in caps): ' + ingredientsSugarsCaps
+                'Ingredients: ' + ingredientsSugarsCaps,
+                otherOptions(false)
               ]
             }
             else {
@@ -336,7 +335,6 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
           })
         })
         .catch(error => {
-          console.log('FDA failed', error)
           return 'Item not found in FDA DB'
         })
       })
@@ -346,11 +344,46 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
       })
     }
     else if (lcvFlag) {
-      return 'Work in progress'
+      // initialize with your clientId and clientSecret
+      var app = new Clarifai.App(
+        'Gk0xpb23IWIY4vRMbHlgQdUxSjlUPBcySEd_gbXN',
+        'MwkyjpQgC30xwvW6wzext0FyqXle32BcuGX3ZUEe'
+      );
+      return app.models.predict(Clarifai.FOOD_MODEL, {base64: result.body})
+      .then(function(cresponse) {
+          // do something with response
+          console.log('Clarifai response', cresponse)
+          const {concepts} = cresponse.outputs[0].data
+          let ing = ''
+          let i = 0
+          for (let obj of concepts) {
+            if (obj.value > 0.7) {
+              if (i === 0) {
+                ing += ': ' + obj.name
+              }
+              ing += ' - ' + obj.name
+              i++
+            }
+          }
+          console.log('Clarifai concepts', concepts)
+          let crtext = "Hmm...sorry I didn't find any food in the picture..."
+          if (ing !== '') {
+            crtext = "Here's what I see" + ing
+          }
+          return [
+            crtext,
+            otherOptions(false)
+          ]
+        },
+        function(cerr) {
+          // there was an error
+          console.log('Clarifai error', cerr)
+        }
+      )
     }
   })
   .catch(err => {
-    console.log("error: ", err)
+    console.log("*****************************error: ", err)
     return [
       'Looks like you confused me...can you help me out?',
       new fbTemplate.Text("Ok, here are your options.")
@@ -556,9 +589,7 @@ function trackUserProfile(userId) {
   const request = require('request-promise')
   return request(fbOptions)
   .then(result => {
-    console.log('Result', result)
     const data = result.body
-    console.log('Data', data)
     const {first_name, last_name, profile_pic, locale, timezone, gender} = data
     firebase.auth().signInAnonymously()
     .then(() => {
@@ -586,9 +617,6 @@ function trackUserProfile(userId) {
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
     var messageText = request.text ? request.text.toLowerCase() : null
-    console.log('Request', request)
-    console.log(messageText)
-    console.log(wolfText)
     const userId = request.originalRequest.sender.id
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (sugarCheckerFlag && messageText) {
@@ -612,7 +640,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       return processLabelImage(url, userId, false, true)
     }
     else if (messageText === 'more details') {
-      console.log('In more details', wolfText)
       let text = wolfText
       wolfText = ''
       return detailedWolfram(text)
@@ -629,6 +656,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         case 'help':
         case 'hi':
         case 'hello':
+        case 'hey':
         case 'get started': {
           return otherOptions(true)
         }
