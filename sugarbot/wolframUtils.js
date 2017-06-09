@@ -28,7 +28,8 @@ exports.getWolfram = function(messageText, userId) {
     let text = result.body
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
     tempRef.set({
-      wolfText: messageText
+      wolfText: messageText,
+      questionFlag: false
     })
     .then(() => {
       return [
