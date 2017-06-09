@@ -6,6 +6,7 @@ const utils = require('./utils.js')
 const wolf = require('./wolframUtils.js')
 const fire = require('./firebaseUtils.js')
 const fbTemplate = botBuilder.fbTemplate;
+const Clarifai = require ('clarifai')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -118,7 +119,42 @@ function processLabelImage(url, userId, lupcFlag, lcvFlag) {
       })
     }
     else if (lcvFlag) {
-      return 'Work in progress'
+      // initialize with your clientId and clientSecret
+      var app = new Clarifai.App(
+        'Gk0xpb23IWIY4vRMbHlgQdUxSjlUPBcySEd_gbXN',
+        'MwkyjpQgC30xwvW6wzext0FyqXle32BcuGX3ZUEe'
+      );
+      return app.models.predict(Clarifai.FOOD_MODEL, {base64: result.body})
+      .then(function(cresponse) {
+          // do something with response
+          console.log('Clarifai response', cresponse)
+          const {concepts} = cresponse.outputs[0].data
+          let ing = ''
+          let i = 0
+          for (let obj of concepts) {
+            if (obj.value > 0.7) {
+              if (i === 0) {
+                ing += ': ' + obj.name
+              }
+              ing += ' - ' + obj.name
+              i++
+            }
+          }
+          console.log('Clarifai concepts', concepts)
+          let crtext = "Hmm...sorry I didn't find any food in the picture..."
+          if (ing !== '') {
+            crtext = "Here's what I see" + ing
+          }
+          return [
+            crtext,
+            otherOptions(false)
+          ]
+        },
+        function(cerr) {
+          // there was an error
+          console.log('Clarifai error', cerr)
+        }
+      )
     }
   })
   .catch(err => {
