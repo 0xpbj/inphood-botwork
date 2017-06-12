@@ -113,6 +113,7 @@ exports.otherOptions = function(option) {
 
 exports.randomSugarFacts = function() {
   const data = sugarUtils.getSugarFact()
+  console.log('Random sugar fact', data)
   return [
     new fbTemplate.ChatAction('typing_on').get(),
     new fbTemplate.Pause(100).get(),
@@ -127,6 +128,7 @@ exports.todaysSugarRecipe = function() {
   const date = new Date(Date.now())
   const message = "Here's your daily sugar free recipe for " + date.toDateString()
   const data = sugarUtils.getSugarRecipe(date)
+  console.log('Todays sugar recipe', data)
   return [
     new fbTemplate.ChatAction('typing_on').get(),
     new fbTemplate.Pause(100).get(),

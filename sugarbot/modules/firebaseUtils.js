@@ -1,6 +1,7 @@
 const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 const utils = require('./utils.js')
+const sugarUtils = require('../modules/sugarUtils.js')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -36,12 +37,12 @@ exports.trackUserProfile = function(userId) {
   const request = require('request-promise')
   return request(fbOptions)
   .then(result => {
-    console.log('Result', result)
+    // console.log('Result', result)
     const data = result.body
-    console.log('Data', data)
+    // console.log('Data', data)
     const {first_name, last_name, profile_pic, locale, timezone, gender} = data
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/profile")
-    userRef.update({
+    return userRef.update({
       first_name,
       last_name,
       profile_pic,
@@ -63,11 +64,11 @@ exports.addSugarToFirebase = function(userId) {
   var fulldate = Date.now()
   var dateValue = new Date(fulldate)
   var date = dateValue.toDateString()
-  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/" + date + "/data/")
+  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
   return tempRef.once("value")
   .then(function(tsnapshot) {
-    var sugar = tsnapshot.child('sugar').val()
-    var foodName = tsnapshot.child('foodName').val()
+    var sugar = tsnapshot.child('food/sugar').val()
+    var foodName = tsnapshot.child('food/foodName').val()
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
     userRef.push({
       foodName,
@@ -83,12 +84,15 @@ exports.addSugarToFirebase = function(userId) {
       var newVal = parseInt(val) + parseInt(sugar)
       return sugarRef.update({ sugar: newVal })
       .then(function() {
-        console.log('Synchronization succeeded');
-        return [
-          'Added ' + sugar + 'g to your journal',
-          'Your current daily intake is ' + newVal + 'g',
-          utils.otherOptions(false)
-        ]
+        return tempRef.child('food').remove()
+        .then(() => {
+          console.log('Synchronization succeeded');
+          return [
+            'Added ' + sugar + 'g to your journal',
+            'Your current daily intake is ' + newVal + 'g',
+            utils.otherOptions(false)
+          ]
+        })
       })
       .catch(function(error) {
         console.log('Synchronization failed', error);
@@ -100,25 +104,34 @@ exports.addSugarToFirebase = function(userId) {
   })
 }
 
-exports.sugarChecker = function(userId) {
-  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-  return tempRef.once("value")
-  .then(function(snapshot) {
-    var messageText = snapshot.child('sugarCheckFlag').val()
-    console.log('Inside not sugar checker', messageText)
-    const result = sugarUtils.getSugarII(messageText)
-    if (result &&
-        result !== '') {
+exports.sugarChecker = function(messageText, userId) {
+  console.log('Inside not sugar checker', messageText)
+  const result = sugarUtils.getSugarII(messageText)
+  if (result &&
+      result !== '') {
+    console.log('That is a processed sugar')
+    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+    return tempRef.child('sugar').update({
+      flag: false
+    })
+    .then(() => {
       return [
         `That's a processed sugar ingredient!`,
         utils.otherOptions(false)
       ]
-    }
-    else {
+    })
+  }
+  else {
+    console.log('That is NOT a processed sugar')
+    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+    return tempRef.child('sugar').update({
+      flag: false
+    })
+    .then(() => {
       return [
         `That's not a processed sugar ingredient!`,
         utils.otherOptions(false)
       ]
-    }
-  })
+    })
+  }
 }

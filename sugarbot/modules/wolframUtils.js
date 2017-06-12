@@ -15,7 +15,6 @@ if (firebase.apps.length === 0) {
 }
 
 exports.getWolfram = function(messageText, userId) {
-  wolfText = messageText
   const url = 'http://api.wolframalpha.com/v1/result?appid=WX84WV-R3THG2XT6L&i=' + encodeURI(messageText)
   const request = require('request-promise')
   let wolfOptions = {
@@ -26,10 +25,11 @@ exports.getWolfram = function(messageText, userId) {
   return request(wolfOptions)
   .then(result => {
     let text = result.body
-    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
-    tempRef.set({
-      wolfText: messageText,
-      questionFlag: false
+    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+    return tempRef.child('question').update({
+      answer: text,
+      text: messageText,
+      flag: false
     })
     .then(() => {
       return [
@@ -43,17 +43,20 @@ exports.getWolfram = function(messageText, userId) {
         .get()
       ]
     })
+    .catch((error) => {
+      console.log('Error here....', error)
+    })
   })
   .catch(error => {
     return "Hmm....can you please re-phrase your question (ex: 'how much sugar in a apple?')"
   })
 }
 
-exports.detailedWolfram = function() {
+exports.detailedWolfram = function(userId) {
   var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
   return tempRef.once("value")
   .then(function(snapshot) {
-    var messageText = snapshot.child('wolfText').val()
+    var messageText = snapshot.child('question/text').val()
     const url = 'http://api.wolframalpha.com/v1/simple?appid=WX84WV-R3THG2XT6L&i=' + encodeURI(messageText)
     const request = require('request-promise')
     let wolfOptions = {
@@ -84,6 +87,7 @@ exports.detailedWolfram = function() {
       return s3promise
       .then(info => {
         const dataUrl = 'https://doowizp5r3uvo.cloudfront.net/chatbot/' + key + '.gif'
+        // console.log('Here is the data url: ', dataUrl)
         return [
           "Bam!",
           new fbTemplate

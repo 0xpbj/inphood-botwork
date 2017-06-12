@@ -210,11 +210,7 @@ exports.capitalizeSugars = function(ingredientsList) {
     const trimLcIng = lcIngredient.trim()
     const sugarResult = exports.getSugarII(trimLcIng)
     if (sugarResult && sugarResult !== '') {
-<<<<<<< HEAD
-      ingredientsUpperCaseSugars += ' 🛑  ' + trimLcIng.toUpperCase() + ' 🛑 , '
-=======
       ingredientsUpperCaseSugars += '⛔️ ' + trimLcIng.toUpperCase() + ' ⛔️ , '
->>>>>>> 8a92ef6b18a0d495e0dd2146b1ca6a6109df513e
     } else {
       ingredientsUpperCaseSugars += trimLcIng + ', '
     }

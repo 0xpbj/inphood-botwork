@@ -1,11 +1,11 @@
 // bot.js
 const botBuilder = require('claudia-bot-builder')
-const ocrUtils = require('./ocrUtils.js')
-const sugarUtils = require('./sugarUtils.js')
-const utils = require('./utils.js')
-const wolf = require('./wolframUtils.js')
-const fire = require('./firebaseUtils.js')
-const image = require('./imageUtils.js')
+const ocrUtils = require('./modules/ocrUtils.js')
+const sugarUtils = require('./modules/sugarUtils.js')
+const utils = require('./modules/utils.js')
+const wolf = require('./modules/wolframUtils.js')
+const fire = require('./modules/firebaseUtils.js')
+const image = require('./modules/imageUtils.js')
 const fbTemplate = botBuilder.fbTemplate
 
 const firebase = require('firebase')
@@ -23,32 +23,41 @@ if (firebase.apps.length === 0) {
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
-    firebase.auth().signInAnonymously()
+    return firebase.auth().signInAnonymously()
     .then(() => {
-      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/" + date + "/data/")
+      const userId = request.originalRequest.sender.id
+      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
       return tempRef.once("value")
       .then(function(snapshot) {
-        var sugarCheckerFlag = snapshot.child('sugarCheckerFlag').val()
-        var questionFlag = snapshot.child('questionFlag').val()
-        var upcFlag = snapshot.child('upcFlag').val()
-        var cvFlag = snapshot.child('cvFlag').val()
+        var sugarCheckerFlag = snapshot.child('sugar/flag').val()
+        var questionFlag = snapshot.child('question/flag').val()
+        var autoUpc = snapshot.child('upc/auto').val()
+        var manualUpc = snapshot.child('upc/manual').val()
+        var cvFlag = snapshot.child('cv/flag').val()
+        // console.log('ARE WE HERE!?', sugarCheckerFlag, questionFlag, autoUpc, cvFlag)
         var messageText = request.text ? request.text.toLowerCase() : null
-        const userId = request.originalRequest.sender.id
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
-          return sugarChecker(messageText)
+          return fire.sugarChecker(messageText, userId)
         }
         else if (questionFlag && messageText) {
-          return wolf.getWolfram(messageText)
+          return wolf.getWolfram(messageText, userId)
         }
-        else if ((upcFlag || cvFlag) && messageAttachments) {
+        else if ((autoUpc || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
           fire.trackUserProfile(userId)
-          return image.processLabelImage(url, userId, upcFlag, cvFlag)
+          return image.processLabelImage(url, userId, autoUpc, cvFlag)
+        }
+        else if (manualUpc && messageText) {
+          return image.fdaProcess(messageText)
         }
         else if (messageText) {
           switch (messageText) {
             case 'main menu':
+            case 'refresh':
+            case 'reset':
+            case 'start':
+            case 'hey':
             case 'menu':
             case '?':
             case 'help':
@@ -56,6 +65,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'hello':
             case 'get started': {
               return utils.otherOptions(true)
+            }
+            case 'other options': {
+              return utils.otherOptions(false)
             }
             case 'analyze nutrition': {
               return [
@@ -71,8 +83,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'send upc label':
             case 'upc label':
             case 'upc': {
-              tempRef.set({
-                upcFlag: true
+              return tempRef.child('upc').update({
+                auto: true
               })
               .then(() => {
                 return 'Please send me a picture of the UPC label you want to check'
@@ -80,8 +92,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'food question':
             case 'question': {
-              tempRef.set({
-                questionFlag: true
+              return tempRef.child('question').update({
+                flag: true
               })
               .then(() => {
                 return 'What would you like to know?'
@@ -90,8 +102,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'send food picture':
             case 'food picture':
             case 'picture': {
-              tempRef.set({
-                cvFlag: true
+              return tempRef.child('cv').update({
+                flag: true
               })
               .then(() => {
                 return "Please send me a picture of your meal and I'll try to guess what you're eating"
@@ -113,11 +125,16 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'processed sugar?':
             case 'processed sugar':
             {
-              return [
-                new fbTemplate.ChatAction('typing_on').get(),
-                new fbTemplate.Pause(100).get(),
-                `Ok, please send me the processed ingredient you are curious about.`
-              ]
+              return tempRef.child('sugar').update({
+                flag: true
+              })
+              .then(() => {
+                return [
+                  new fbTemplate.ChatAction('typing_on').get(),
+                  new fbTemplate.Pause(100).get(),
+                  `Ok, please send me the processed ingredient you are curious about.`
+                ]
+              })
             }
             case 'share': {
               return utils.sendShareButton()
@@ -135,34 +152,31 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'more details': {
               return wolf.detailedWolfram(userId)
             }
+            case 'manual upc code entry': {
+              return tempRef.child('upc').update({
+                manual: true
+              })
+              .then(() => {
+                return 'Ok, please send me the UPC code'
+              })
+            }
             default: {
               return wolf.getWolfram(messageText, userId)
             }
           }
         }
-        // else {
-        //   return [
-        //     new fbTemplate.ChatAction('typing_on').get(),
-        //     new fbTemplate.Pause(100).get(),
-        //     new fbTemplate.Text("Ok, here are your options.")
-        //     .addQuickReply('Check UPC Label 🏷', 'send upc label')
-        //     .addQuickReply('Send food image 🥗', 'send food picture')
-        //     .addQuickReply('Ask a food question? 📝', 'food question')
-        //     .get()
-        //   ]
-        // }
       })
     })
     .catch(function(error) {
       // Handle Errors here.
       var errorCode = error.code;
       var errorMessage = error.message;
-
       if (errorCode === 'auth/operation-not-allowed') {
-        alert('You must enable Anonymous auth in the Firebase Console.');
+        // alert('You must enable Anonymous auth in the Firebase Console.');
+        throw 'You must enable Anonymous auth in the Firebase Console.'
       } else {
-        console.error(error);
+        console.log('Error happened: ', error);
       }
-    });
+    })
   }
 }, { platforms: ['facebook'] });
