@@ -58,12 +58,17 @@ exports.trackUserProfile = function(userId) {
   })
 }
 
-exports.addSugarToFirebase = function(userId) {
+exports.addSugarToFirebase = function(userId, timezone) {
   console.log('in add sugar to firebase')
-  var user = firebase.auth().currentUser
-  var fulldate = Date.now()
+  console.log('timezone math', timezone * 3600)
+  var fulldate = Date.now() + (timezone * 3600)
   var dateValue = new Date(fulldate)
   var date = dateValue.toDateString()
+  // var date = new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), dateValue.getHours(), dateValue.getMinutes(), dateValue.getSeconds()))
+  console.log('######################## DATE', date, Date.now().toString(), fulldate)
+  console.log('Unaltered time: ', (new Date(Date.now())).toString())
+  console.log('Altered time: ', dateValue.toString());     // logs Wed Jul 28 1993 14:39:07 GMT-0600 (PDT)
+  console.log(dateValue.toTimeString()); // logs 14:39:07 GMT-0600 (PDT)
   var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
   return tempRef.once("value")
   .then(function(tsnapshot) {
@@ -73,7 +78,7 @@ exports.addSugarToFirebase = function(userId) {
     userRef.push({
       foodName,
       userId,
-      timestamp: Date.now()
+      timestamp: fulldate
     })
     var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
     return sugarRef.once("value")

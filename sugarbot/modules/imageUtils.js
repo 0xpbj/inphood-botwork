@@ -1,6 +1,7 @@
 const botBuilder = require('claudia-bot-builder');
 const fire = require('./firebaseUtils.js')
 const utils = require('./utils.js')
+const sugarUtils = require('./sugarUtils.js')
 const fbTemplate = botBuilder.fbTemplate;
 const Clarifai = require ('clarifai')
 
@@ -17,32 +18,8 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-exports.infoToFirebase = function(userId) {
-  return firebase.auth().signInAnonymously()
-  .then(() => {
-    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
-    return tempRef.child('upc').remove()
-    .then(() => {
-      return tempRef.child('food').set({
-        sugar: sugarPerServing,
-        foodName,
-      })
-      .then(() => {
-        return [
-          sugarPerServingStr,
-          'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-          'This is what ' + sugarPerServing +'g of sugar looks like.',
-          new fbTemplate
-          .Image(utils.getGifUrl(sugarPerServing))
-          .get(),
-          fire.trackSugar()
-        ]
-      })
-    })
-  })
-}
-
-exports.fdaProcess = function (barcode) {
+exports.fdaProcess = function (userId, barcode) {
+  console.log('FDA Process', userId, barcode)
   const frequest = require('request-promise')
   let fdaOptions = {
     uri: 'https://api.nal.usda.gov/ndb/search/',
@@ -75,11 +52,46 @@ exports.fdaProcess = function (barcode) {
     const ndbno = fdaResult.body.list.item[0].ndbno
     let report = utils.getUsdaReport(ndbno)
     return report.then(fdaResponse => {
+      console.log('FDA RESPONSE', fdaResponse)
       const {error, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps} = fdaResponse
       if (sugarPerServing && ingredientsSugarsCaps) {
-        return infoToFirebase(userId, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
+        var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+        return tempRef.child('food').set({
+          sugar: sugarPerServing,
+          foodName,
+        })
+        .then(() => {
+          console.log('here i got')
+          return tempRef.child('upc').remove()
+          .then(() => {
+            console.log('there i came')
+            if (sugarPerServing !== '0.00') {
+              return [
+                sugarPerServingStr,
+                'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
+                'This is what ' + sugarPerServing +'g of sugar looks like.',
+                new fbTemplate
+                .Image(utils.getGifUrl(sugarPerServing))
+                .get(),
+                fire.trackSugar()
+              ]
+            }
+            else {
+              return [
+                'Congratulations! 🎉🎉 No sugars found!',
+                utils.otherOptions(false)
+              ]
+            }
+          })
+          .catch(rerror => {
+            console.log('rem error', rerror)
+          })
+        })
+        .catch(serror => {
+          console.log('set error', serror)
+        })
       }
-      else {
+      else if (error) {
         throw 'fda response was undefined'
       }
     })
@@ -90,20 +102,63 @@ exports.fdaProcess = function (barcode) {
     var options = {
       uri: 'https://api.nutritionix.com/v1_1/item?upc=' + barcode + '&appId=cb42b701&appKey=2b46032a70f81fcefe89528a7169dc6a',
       method: 'GET',
-      json: false,
+      json: true,
       resolveWithFullResponse: true,
     }
+    console.log('calling nutritionix')
     const request = require('request-promise')
-    return request(fbOptions)
+    return request(options)
     .then(result => {
-      console.log('Result from nutritionix', result)
-      console.log('Result body from nutritionix', result.body)
-      const {error, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps} = fdaResponse
-      if (sugarPerServing && ingredientsSugarsCaps) {
-        return infoToFirebase(userId, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
+      // console.log('Result from nutritionix', result)
+      // console.log('Result body from nutritionix', result.body)
+      const {body} = result
+      // const {error, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps} = fdaResponse
+      let ingredientsSugarsCaps = sugarUtils.capitalizeSugars(body.nf_ingredient_statement)
+      let sugarPerServing = body.nf_sugars
+      let sugarPerServingStr = body.nf_sugars + 'g sugars in ' + body.nf_serving_size_qty + ' ' + body.nf_serving_size_unit + ' (' + body.nf_serving_weight_grams + 'g) serving'
+      let foodName = body.brand_name
+      console.log('\n\n\n\nRESULTS PARSED', ingredientsSugarsCaps, sugarPerServing, sugarPerServingStr)
+      console.log('\n\n\n more info', userId, foodName, sugarPerServing)
+      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+      return tempRef.child('food').set({
+        sugar: sugarPerServing,
+        foodName,
+      })
+      .then(() => {
+        console.log('here i got2')
+        return tempRef.child('upc').remove()
+        .then(() => {
+          console.log('there i came2')
+          if (sugarPerServing !== 0) {
+            return [
+              sugarPerServingStr,
+              'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
+              'This is what ' + sugarPerServing +'g of sugar looks like.',
+              new fbTemplate
+              .Image(utils.getGifUrl(sugarPerServing))
+              .get(),
+              fire.trackSugar()
+            ]
+          }
+          else {
+            return [
+              'Congratulations! 🎉🎉 No sugars found!',
+              utils.otherOptions(false)
+            ]
+          }
+        })
+      })
     })
-    .catch(error => {
-      return "Looks like you got me...I have no idea what you're eating"
+    .catch(ferror => {
+      console.log('WHy error', ferror)
+      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+      return tempRef.child('upc').remove()
+      .then(() => {
+        return [
+          "Looks like you got me...I have no idea what you're eating",
+          utils.otherOptions(false)
+        ]
+      })
       //manual entry point here
     })
   })
@@ -138,7 +193,7 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         src: barcode // or 'data:image/jpg;base64,' + data
       })
       .then(response => {
-        return exports.fdaProcess(response)
+        return exports.fdaProcess(userId, response)
       })
       .catch(() => {
         return new fbTemplate.Text("I couldn't read that barcode...would you like to manually enter the barcode?")

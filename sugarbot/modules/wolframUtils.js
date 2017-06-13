@@ -1,6 +1,7 @@
 const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 const utils = require('./utils.js')
+const fire = require('./firebaseUtils.js')
 const firebase = require('firebase')
 const fbConfig = {
   apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
@@ -32,16 +33,16 @@ exports.getWolfram = function(messageText, userId) {
       flag: false
     })
     .then(() => {
-      return [
-        text,
-        new fbTemplate.Text("What do you want to do next?")
-        .addQuickReply('More Details 📚', 'more details')
-        .addQuickReply('Analyze Nutrition 🔬', 'analyze nutrition')
-        .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-        .addQuickReply('Sugar Free Recipe 📅', 'recipe')
-        .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
-        .get()
-      ]
+      return tempRef.child('food').update({
+        sugar: parseInt(text),
+        foodName: messageText
+      })
+      .then(() => {
+        return [
+          text,
+          fire.trackSugar()
+        ]
+      })
     })
     .catch((error) => {
       console.log('Error here....', error)

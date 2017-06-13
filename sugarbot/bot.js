@@ -6,6 +6,7 @@ const utils = require('./modules/utils.js')
 const wolf = require('./modules/wolframUtils.js')
 const fire = require('./modules/firebaseUtils.js')
 const image = require('./modules/imageUtils.js')
+const nutrition = require ('./modules/nutritionix.js')
 const fbTemplate = botBuilder.fbTemplate
 
 const firebase = require('firebase')
@@ -26,22 +27,23 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     return firebase.auth().signInAnonymously()
     .then(() => {
       const userId = request.originalRequest.sender.id
-      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
       return tempRef.once("value")
       .then(function(snapshot) {
-        var sugarCheckerFlag = snapshot.child('sugar/flag').val()
-        var questionFlag = snapshot.child('question/flag').val()
-        var autoUpc = snapshot.child('upc/auto').val()
-        var manualUpc = snapshot.child('upc/manual').val()
-        var cvFlag = snapshot.child('cv/flag').val()
-        // console.log('ARE WE HERE!?', sugarCheckerFlag, questionFlag, autoUpc, cvFlag)
+        const sugarCheckerFlag = snapshot.child('/temp/data/sugar/flag').val()
+        const questionFlag = snapshot.child('/temp/data/question/flag').val()
+        const autoUpc = snapshot.child('/temp/data/upc/auto').val()
+        const manualUpc = snapshot.child('/temp/data/upc/manual').val()
+        const cvFlag = snapshot.child('/temp/data/cv/flag').val()
+        const timezone = snapshot.child('/profile/timezone').val()
         var messageText = request.text ? request.text.toLowerCase() : null
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
           return fire.sugarChecker(messageText, userId)
         }
         else if (questionFlag && messageText) {
-          return wolf.getWolfram(messageText, userId)
+          return nutrition.getNutritionix(messageText, userId, timezone)
+          // return wolf.getWolfram(messageText, userId)
         }
         else if ((autoUpc || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
@@ -49,7 +51,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return image.processLabelImage(url, userId, autoUpc, cvFlag)
         }
         else if (manualUpc && messageText) {
-          return image.fdaProcess(messageText)
+          console.log('DID I COME HERE?')
+          return image.fdaProcess(userId, messageText)
         }
         else if (messageText) {
           switch (messageText) {
@@ -74,17 +77,17 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 new fbTemplate.ChatAction('typing_on').get(),
                 new fbTemplate.Pause(100).get(),
                 new fbTemplate.Text("Ok, here are your options.")
-                .addQuickReply('Check UPC Label 🏷', 'send upc label')
-                .addQuickReply('Send food image 🥗', 'send food picture')
-                .addQuickReply('Food question? 📝', 'food question')
+                .addQuickReply('UPC Label Photo 🏷', 'send upc label')
+                .addQuickReply('Type UPC Number ⌨️', 'manual upc code entry')
                 .get()
               ]
             }
             case 'send upc label':
             case 'upc label':
             case 'upc': {
-              return tempRef.child('upc').update({
-                auto: true
+              return tempRef.child('/temp/data/upc').update({
+                auto: true,
+                manual: false
               })
               .then(() => {
                 return 'Please send me a picture of the UPC label you want to check'
@@ -92,17 +95,17 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'food question':
             case 'question': {
-              return tempRef.child('question').update({
+              return tempRef.child('/temp/data/question').update({
                 flag: true
               })
               .then(() => {
-                return 'What would you like to know?'
+                return 'Tell me what you ate'
               })
             }
             case 'send food picture':
             case 'food picture':
             case 'picture': {
-              return tempRef.child('cv').update({
+              return tempRef.child('/temp/data/cv').update({
                 flag: true
               })
               .then(() => {
@@ -125,7 +128,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'processed sugar?':
             case 'processed sugar':
             {
-              return tempRef.child('sugar').update({
+              return tempRef.child('/temp/data/sugar').update({
                 flag: true
               })
               .then(() => {
@@ -140,7 +143,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               return utils.sendShareButton()
             }
             case 'add sugar': {
-              return fire.addSugarToFirebase(userId)
+              return fire.addSugarToFirebase(userId, timezone)
             }
             case 'remove temp food data': {
               return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
@@ -153,15 +156,24 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               return wolf.detailedWolfram(userId)
             }
             case 'manual upc code entry': {
-              return tempRef.child('upc').update({
-                manual: true
+              return tempRef.child('/temp/data/upc').update({
+                manual: true,
+                auto: false
               })
               .then(() => {
                 return 'Ok, please send me the UPC code'
               })
             }
+            case 'food knowledge': {
+              return new fbTemplate.Text('What would you like to do know?')
+                .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
+                .addQuickReply('Sugar Free Recipe 📅', 'recipe')
+                .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
+                .get();
+            }
             default: {
-              return wolf.getWolfram(messageText, userId)
+              // return wolf.getWolfram(messageText, userId)
+              return nutrition.getNutritionix(messageText, userId, timezone)
             }
           }
         }

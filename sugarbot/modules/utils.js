@@ -94,19 +94,19 @@ exports.otherOptions = function(option) {
     return [
       "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
-        .addQuickReply('Analyze Nutrition 🔬', 'analyze nutrition')
-        .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-        .addQuickReply('Sugar Free Recipe 📅', 'recipe')
-        .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
+        .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
+        .addQuickReply('Food Journal ✏️', 'food question')
+        .addQuickReply('Send food image 🥗', 'send food picture')
+        .addQuickReply('Food Knowledge 📚', 'food knowledge')
         .get()
     ]
   }
   else {
     return new fbTemplate.Text('What would you like to do next?')
-      .addQuickReply('Analyze Nutrition 🔬', 'analyze nutrition')
-      .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-      .addQuickReply('Sugar Free Recipe 📅', 'recipe')
-      .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
+      .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
+      .addQuickReply('Food Journal ✏️', 'food question')
+      .addQuickReply('Send food image 🥗', 'send food picture')
+      .addQuickReply('Food Knowledge 📚', 'food knowledge')
       .get();
   }
 }
