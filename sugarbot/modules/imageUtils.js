@@ -166,7 +166,8 @@ exports.fdaProcess = function (userId, barcode) {
       .then(() => {
         return [
           "Looks like you got me...I have no idea what you're eating",
-          utils.otherOptions(false)
+          utils.badBarCode(barcode)
+          // utils.otherOptions(false)
         ]
       })
       //manual entry point here
