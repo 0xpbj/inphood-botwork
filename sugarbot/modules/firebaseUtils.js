@@ -58,28 +58,56 @@ exports.trackUserProfile = function(userId) {
   })
 }
 
-exports.addSugarToFirebase = function(userId, timezone) {
-  console.log('in add sugar to firebase')
-  console.log('timezone math', timezone * 3600)
-  var fulldate = Date.now() + (timezone * 3600)
-  var dateValue = new Date(fulldate)
-  var date = dateValue.toDateString()
+exports.calculateDailyTracking = function(weight, sugar) {
+  //default to 60 g of sugar, 15 cubes of sugar
+  // ⬜️  - unused
+  // ☑️  - used
+  // 🅾️  - over
+  let used = Math.round(sugar / 4)
+  console.log('USED', used)
+  let over = 0
+  let unused = 0
+  let retLine = ''
+  if (used > 15) {
+    over = used - 15
+    used = 15
+    unused = 0
+  }
+  else {
+    unused = 15 - used
+  }
+  for (let i = 0; i < over; i++) {
+    retLine += '🅾️'
+  }
+  for (let i = 0; i < used; i++) {
+    retLine += '✅ '
+  }
+  for (let i = 0; i < unused; i++) {
+    retLine += '⬜️ '
+  }
+  return retLine
+}
+
+exports.addSugarToFirebase = function(userId, date, fulldate) {
+  // console.log('in add sugar to firebase')
   // var date = new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), dateValue.getHours(), dateValue.getMinutes(), dateValue.getSeconds()))
-  console.log('######################## DATE', date, Date.now().toString(), fulldate)
-  console.log('Unaltered time: ', (new Date(Date.now())).toString())
-  console.log('Altered time: ', dateValue.toString());     // logs Wed Jul 28 1993 14:39:07 GMT-0600 (PDT)
-  console.log(dateValue.toTimeString()); // logs 14:39:07 GMT-0600 (PDT)
-  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+  console.log('######################## DATE', date)
+  // console.log('Unaltered time: ', (new Date(Date.now())).toString())
+  // console.log('Altered time: ', dateValue.toString());     // logs Wed Jul 28 1993 14:39:07 GMT-0600 (PDT)
+  // console.log(dateValue.toTimeString()); // logs 14:39:07 GMT-0600 (PDT)
+  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
   return tempRef.once("value")
   .then(function(tsnapshot) {
-    var sugar = tsnapshot.child('food/sugar').val()
-    var foodName = tsnapshot.child('food/foodName').val()
+    var sugar = tsnapshot.child('/temp/data/food/sugar').val()
+    var foodName = tsnapshot.child('/temp/data/food/foodName').val()
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
     userRef.push({
       foodName,
       userId,
       timestamp: fulldate
     })
+    var weight = tsnapshot.child('/preferences/currentWeight').val()
+    var goalWeight = tsnapshot.child('/preferences/currentGoalWeight').val()
     var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
     return sugarRef.once("value")
     .then(function(snapshot) {
@@ -89,13 +117,21 @@ exports.addSugarToFirebase = function(userId, timezone) {
       var newVal = parseInt(val) + parseInt(sugar)
       return sugarRef.update({ sugar: newVal })
       .then(function() {
-        return tempRef.child('food').remove()
+        return tempRef.child('/temp/data/food').remove()
         .then(() => {
-          console.log('Synchronization succeeded');
+          let track = exports.calculateDailyTracking(weight, newVal)
           return [
             'Added ' + sugar + 'g to your journal',
-            'Your current daily intake is ' + newVal + 'g',
-            utils.otherOptions(false)
+            'Your current daily sugar intake is ' + newVal + 'g',
+            "Here's your daily intake",
+            track,
+            new fbTemplate.Text('When should I remind you to track your next meal?')
+              .addQuickReply('1 hour', 'time1')
+              .addQuickReply('3 hours', 'time3')
+              .addQuickReply('5 hours', 'time5')
+              .addQuickReply('Tomorrow', 'timeTomorrow')
+              .addQuickReply("Don't ask", 'notime')
+              .get()
           ]
         })
       })

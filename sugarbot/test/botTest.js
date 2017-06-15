@@ -24,6 +24,8 @@ if (firebase.apps.length === 0) {
 
 http.createServer(function (request, response) {
   console.log('Starting server')
+  const dateVal = 1497368855147
+
   return firebase.auth().signInAnonymously()
   .then(() => {
     console.log('Firebase logged in')
@@ -47,9 +49,13 @@ http.createServer(function (request, response) {
       // var url = 'https://scontent.fsnc1-1.fna.fbcdn.net/v/t34.0-0/p480x480/19184309_10101449309384199_130749422_n.jpg?oh=e7b3d26080ccc5a289f2d47b86aca1c0&oe=594092B9'
       // var messageText = 'cv' //request.text ? request.text.toLowerCase() : null
       // var url = 'https://scontent.fsnc1-1.fna.fbcdn.net/v/t35.0-12/19105061_10101449302218559_789990656_o.jpg?oh=3d6a310ea94a4abeb0faa69fb7be8190&oe=5941977E'
-      var messageText = 'a cup of blueberries'
-      return nutrition.getNutritionix(messageText, userId, timezone)
+      // var messageText = '1 cup blueberries, 2 tbsp honey, 1 cup greek yogurt'
+      // return fire.addSugarToFirebase(userId, date, fulldate)
+      // return nutrition.getNutritionix(messageText, userId, timezone)
       // var url = 'https://scontent.xx.fbcdn.net/v/t34.0-0/p480x480/19114431_10101449631638399_768503254_n.jpg?_nc_ad=z-m&oh=5f765dc0980d3175c26cc7bf37827abc&oe=59417504'
+      // var url = 'https://scontent.fsnc1-1.fna.fbcdn.net/v/t34.0-0/p480x480/19142165_10101451909179189_663213606_n.jpg?oh=7993b330affe65d6508bdf2f814bdeb7&oe=59443802'
+      // return image.processLabelImage(url, userId, false, true)
+      console.log(fire.calculateDailyTracking(165, 60))
       // if (sugarCheckerFlag && messageText) {
       //   return fire.sugarChecker(messageText, userId)
       // }

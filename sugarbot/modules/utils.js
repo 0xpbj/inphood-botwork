@@ -98,6 +98,7 @@ exports.otherOptions = function(option) {
         .addQuickReply('Food Journal ✏️', 'food question')
         .addQuickReply('Send food image 🥗', 'send food picture')
         .addQuickReply('Food Knowledge 📚', 'food knowledge')
+        .addQuickReply('My Preferences ⚙️', 'preferences')
         .get()
     ]
   }
@@ -107,6 +108,7 @@ exports.otherOptions = function(option) {
       .addQuickReply('Food Journal ✏️', 'food question')
       .addQuickReply('Send food image 🥗', 'send food picture')
       .addQuickReply('Food Knowledge 📚', 'food knowledge')
+      .addQuickReply('My Preferences ⚙️', 'preferences')
       .get();
   }
 }
@@ -124,10 +126,11 @@ exports.randomSugarFacts = function() {
   ]
 }
 
-exports.todaysSugarRecipe = function() {
-  const date = new Date(Date.now())
+exports.todaysSugarRecipe = function(dateVal) {
+  const date = new Date(dateVal)
   const message = "Here's your daily sugar free recipe for " + date.toDateString()
   const data = sugarUtils.getSugarRecipe(date)
+  console.log('Datevalue', date)
   console.log('Todays sugar recipe', data)
   return [
     new fbTemplate.ChatAction('typing_on').get(),

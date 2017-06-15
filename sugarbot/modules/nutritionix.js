@@ -37,22 +37,53 @@ exports.getNutritionix = function(messageText, userId, timezone) {
   }
   return request(nutOptions)
   .then(result => {
-    let text = result.body.foods[0]
-    console.log('Here is what we get from nutritionix', text)
-    console.log(text.nf_sugars)
-    const sugar = text.nf_sugars
-    const foodName = text.brand_name ? text.brand_name : ''
-    const userText = messageText + ' has' + sugar + 'g of sugar'
-    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-    return tempRef.child('food').update({
+    let {foods} = result.body
+    let sugar = 0
+    let userText = ''
+    let foodName = ''
+    for (let food of foods) {
+      sugar += food.nf_sugars
+      userText += 'Sugar in ' + food.food_name + ': ' + food.nf_sugars + 'g\n'
+      foodName += food.food_name + '\n'
+    }
+    if (userText !== '') {
+      userText += 'Total sugar in meal: ' + sugar + 'g'
+    }
+    console.log('Amount of sugar: ', sugar)
+    console.log(userText)
+    var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
+    return tempRef.child('/temp/data/food').update({
       sugar,
       foodName
     })
     .then(() => {
-      return [
-        userText,
-        fire.trackSugar()
-      ]
+      return tempRef.child('/temp/data/question/').update({
+        flag: false
+      })
+      .then(() => {
+        if (sugar) {
+          return [
+            userText,
+            'This is what ' + sugar +'g of sugar looks like.',
+            new fbTemplate
+            .Image(utils.getGifUrl(sugar))
+            .get(),
+            fire.trackSugar()
+          ]
+        }
+        else {
+          return [
+            'Congratulations! 🎉🎉 No sugars found!',
+            new fbTemplate.Text('When should I remind you to track your next meal?')
+              .addQuickReply('1 hour', 'time1')
+              .addQuickReply('3 hours', 'time3')
+              .addQuickReply('5 hours', 'time5')
+              .addQuickReply('Tomorrow', 'timeTomorrow')
+              .addQuickReply("Don't ask", 'notime')
+              .get()
+          ]
+        }
+      })
     })
     .catch((error) => {
       console.log('Error here....', error)
@@ -60,5 +91,12 @@ exports.getNutritionix = function(messageText, userId, timezone) {
   })
   .catch(error => {
     console.log("Hmm....error", error)
+    return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/").remove()
+    .then(function() {
+      return [
+        'I got confused...',
+        utils.otherOptions(false)
+      ]
+    })
   })
 }

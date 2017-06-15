@@ -4,6 +4,7 @@ const utils = require('./utils.js')
 const sugarUtils = require('./sugarUtils.js')
 const fbTemplate = botBuilder.fbTemplate;
 const Clarifai = require ('clarifai')
+const nutrition = require ('./nutritionix.js')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -56,8 +57,9 @@ exports.fdaProcess = function (userId, barcode) {
       const {error, sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps} = fdaResponse
       if (sugarPerServing && ingredientsSugarsCaps) {
         var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+        let sugar = parseInt(sugarPerServing)
         return tempRef.child('food').set({
-          sugar: sugarPerServing,
+          sugar: sugar,
           foodName,
         })
         .then(() => {
@@ -65,18 +67,26 @@ exports.fdaProcess = function (userId, barcode) {
           return tempRef.child('upc').remove()
           .then(() => {
             console.log('there i came')
-            if (sugarPerServing !== '0.00') {
+            if (sugar >= 3) {
               return [
                 sugarPerServingStr,
                 'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-                'This is what ' + sugarPerServing +'g of sugar looks like.',
+                'This is what ' + sugar +'g of sugar looks like approximately.',
                 new fbTemplate
-                .Image(utils.getGifUrl(sugarPerServing))
+                .Image(utils.getGifUrl(sugar))
                 .get(),
                 fire.trackSugar()
               ]
             }
-            else {
+            else if (sugar > 0) {
+              return [
+                sugarPerServingStr,
+                'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
+                sugar + 'g of sugar found',
+                fire.trackSugar()
+              ]
+            }
+            else if (sugar === 0){
               return [
                 'Congratulations! 🎉🎉 No sugars found!',
                 utils.otherOptions(false)
@@ -217,29 +227,31 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         let ing = ''
         let i = 0
         for (let obj of concepts) {
-          if (obj.value > 0.7) {
+          if (obj.value > 0.8) {
             if (i === 0) {
               ing += ': ' + obj.name
             }
-            ing += ' - ' + obj.name
+            ing += ', ' + obj.name
             i++
           }
         }
-        console.log('Clarifai concepts', concepts)
-        let crtext = "Hmm...sorry I didn't find any food in the picture..."
-        if (ing !== '') {
-          crtext = "Here's what I see" + ing
-        }
-        var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
-        return tempRef.child('cv').set({
-          flag: false
-        })
-        .then(() => {
-          return [
-            crtext,
-            utils.otherOptions(false)
-          ]
-        })
+        return nutrition.getNutritionix(ing, userId)
+        // console.log('Clarifai concepts', concepts)
+        // let crtext = "Hmm...sorry I didn't find any food in the picture..."
+        // if (ing !== '') {
+        //   crtext = "Here's what I see" + ing
+        // }
+        // console.log('Clarifai response', crtext)
+        // var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
+        // return tempRef.child('cv').set({
+        //   flag: false
+        // })
+        // .then(() => {
+        //   return [
+        //     crtext,
+        //     utils.otherOptions(false)
+        //   ]
+        // })
         },
         function(cerr) {
           // there was an error

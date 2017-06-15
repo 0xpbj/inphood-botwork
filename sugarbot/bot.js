@@ -24,6 +24,14 @@ if (firebase.apps.length === 0) {
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
+    // console.log(request)
+    // console.log(request.originalRequest)
+    const {timestamp} = request.originalRequest
+    var dateValue = new Date(timestamp)
+    var date = dateValue.toDateString()
+    // console.log('DATES', timestamp)
+    // console.log(dateValue)
+    // console.log(date)
     return firebase.auth().signInAnonymously()
     .then(() => {
       const userId = request.originalRequest.sender.id
@@ -36,6 +44,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const manualUpc = snapshot.child('/temp/data/upc/manual').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
         const timezone = snapshot.child('/profile/timezone').val()
+        const weight = snapshot.child('/temp/data/preferences/weight').val()
+        const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
         var messageText = request.text ? request.text.toLowerCase() : null
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
@@ -51,8 +61,49 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return image.processLabelImage(url, userId, autoUpc, cvFlag)
         }
         else if (manualUpc && messageText) {
-          console.log('DID I COME HERE?')
           return image.fdaProcess(userId, messageText)
+        }
+        else if (weight && messageText) {
+          return tempRef.child('/preferences/' + date).update({
+            weight: messageText
+          })
+          .then(() => {
+            return tempRef.child('/preferences/currentWeight').update({
+              currentWeight: messageText
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/preferences/').update({
+                weight: false
+              })
+              .then(() => {
+                return [
+                  'Got it! Your weight added: ' + messageText,
+                  utils.otherOptions(false)
+                ]
+              })
+            })
+          })
+        }
+        else if (goalWeight && messageText) {
+          return tempRef.child('/preferences/' + date).update({
+            goalWeight: messageText
+          })
+          .then(() => {
+            return tempRef.child('/preferences/currentGoalWeight').update({
+              currentGoalWeight: messageText
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/preferences/').update({
+                goalWeight: false
+              })
+              .then(() => {
+                return [
+                  'Got it! Your goal weight added: ' + messageText,
+                  utils.otherOptions(false)
+                ]
+              })
+            })
+          })
         }
         else if (messageText) {
           switch (messageText) {
@@ -67,7 +118,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'hi':
             case 'hello':
             case 'get started': {
-              return utils.otherOptions(true)
+             return tempRef.child('/temp/data/').remove()
+              .then(() => {
+                return utils.otherOptions(true)
+              })
             }
             case 'other options': {
               return utils.otherOptions(false)
@@ -99,7 +153,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return 'Tell me what you ate'
+                return 'Ok, please tell me what you ate or drank'
               })
             }
             case 'send food picture':
@@ -109,11 +163,12 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me a picture of your meal and I'll try to guess what you're eating"
+                return "Please send me a picture of your meal and I'll try to guess how much sugar you're eating"
               })
             }
             case 'another random sugar fact':
             case 'hit me with a fact':
+            case 'random sugar fact':
             case 'random sugar facts': {
               return utils.randomSugarFacts()
             }
@@ -121,7 +176,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case "today's recipe":
             case 'send me todays recipe':
             case 'sugar recipe': {
-              return utils.todaysSugarRecipe()
+              return utils.todaysSugarRecipe(timestamp)
             }
             case 'processed ingredient':
             case 'try another sugar?':
@@ -143,12 +198,11 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               return utils.sendShareButton()
             }
             case 'add sugar': {
-              return fire.addSugarToFirebase(userId, timezone)
+              return fire.addSugarToFirebase(userId, date, timestamp)
             }
             case 'remove temp food data': {
               return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
               .then(function() {
-                console.log("Remove succeeded.")
                 return utils.otherOptions(false)
               })
             }
@@ -164,12 +218,88 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return 'Ok, please send me the UPC code'
               })
             }
+            case 'preferences': {
+              return new fbTemplate.Text('What would you like to do?')
+                .addQuickReply('Add current weight', 'weight')
+                .addQuickReply('Add goal weight', 'goalWeight')
+                .get()
+            }
+            case 'weight': {
+              return tempRef.child('/temp/data/preferences').update({
+                weight: true
+              })
+              .then(() => {
+                return 'Ok, please tell me your weight in lbs (ex: 165)'
+              })
+            }
+            case 'goalWeight': {
+              return tempRef.child('/temp/data/preferences').update({
+                goalWeight: true
+              })
+              .then(() => {
+                return 'Ok, please tell me your goal weight in lbs (ex: 165)'
+              })
+            }
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
                 .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
                 .addQuickReply('Sugar Free Recipe 📅', 'recipe')
                 .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
-                .get();
+                .get()
+            }
+            case 'time1': {
+              return tempRef.child('/preferences/nextReminder').update({
+                time: Date.now() + (1*3600*1000),
+                reminder1: true
+              })
+              .then(() => {
+                return [
+                  "Great I'll remind you in a hour! You can still add meals when you please.",
+                  utils.otherOptions(false)
+                ]
+              })
+            }
+            case 'time3': {
+              return tempRef.child('/preferences/nextReminder').update({
+                time: Date.now() + (3*3600*1000)
+              })
+              .then(() => {
+                return [
+                  "Great I'll remind you in 3 hours! You can still add meals when you please.",
+                  utils.otherOptions(false)
+                ]
+              })
+            }
+            case 'time5': {
+              return tempRef.child('/preferences/nextReminder').update({
+                time: Date.now() + (5*3600*1000)
+              })
+              .then(() => {
+                return [
+                  "Great I'll remind you in 5 hours! You can still add meals when you please.",
+                  utils.otherOptions(false)
+                ]
+              })
+            }
+            case 'timeTomorrow': {
+              return tempRef.child('/preferences/nextReminder').update({
+                time: Date.now() + (24*3600*1000)
+              })
+              .then(() => {
+                return [
+                  "Great I'll remind you tomorrow! You can still add meals when you please.",
+                  utils.otherOptions(false)
+                ]
+              })
+            }
+            case 'notime': {
+              return tempRef.child('/preferences/nextReminder').remove()
+              .then(() => {
+                return [
+                  "Ok I will not remind you! You can still add meals when you please.",
+                  utils.otherOptions(false)
+                ]
+              })
             }
             default: {
               // return wolf.getWolfram(messageText, userId)
