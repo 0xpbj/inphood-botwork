@@ -1,15 +1,15 @@
 var http = require('http');
-const botBuilder = require('claudia-bot-builder')
-const ocrUtils = require('../modules/ocrUtils.js')
-const sugarUtils = require('../modules/sugarUtils.js')
-const utils = require('../modules/utils.js')
-const wolf = require('../modules/wolframUtils.js')
-const fire = require('../modules/firebaseUtils.js')
-const image = require('../modules/imageUtils.js')
-const nutrition = require('../modules/nutritionix.js')
+const botBuilder = require('../sugarBot/node_modules/claudia-bot-builder')
+const ocrUtils = require('../sugarBot/modules/ocrUtils.js')
+const sugarUtils = require('../sugarBot/modules/sugarUtils.js')
+const utils = require('../sugarBot/modules/utils.js')
+const wolf = require('../sugarBot/modules/wolframUtils.js')
+const fire = require('../sugarBot/modules/firebaseUtils.js')
+const image = require('../sugarBot/modules/imageUtils.js')
+const nutrition = require('../sugarBot/modules/nutritionix.js')
 const fbTemplate = botBuilder.fbTemplate
 
-const firebase = require('firebase')
+const firebase = require('../sugarBot/node_modules/firebase')
 const fbConfig = {
   apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
   authDomain: 'inphooddb-e0dfd.firebaseapp.com',
