@@ -1,10 +1,10 @@
 var http = require('http');
-const utils = require('./../utils.js')
+const utils = require('../sugarBot/modules/utils.js')
 
 http.createServer(function (request, response) {
 
-  const rp = require('request-promise')
-  const ocrUtils = require('../ocrUtils.js')
+  const rp = require('../sugarBot/node_modules/request-promise')
+  const ocrUtils = require('../sugarBot/modules/ocrUtils.js')
 
   const testImages = ['./images/jam.jpg']
 
@@ -46,7 +46,7 @@ http.createServer(function (request, response) {
       }
 
       console.log('Launching USDA request:')
-      const frequest = require('request-promise')
+      const frequest = require('../sugarBot/node_modules/request-promise')
 
       return frequest(usdaUpcSearchRequest)
       .then(usdaUpcSearchResult => {
