@@ -229,6 +229,13 @@ exports.getGifUrl = function(number) {
   }
 }
 
+exports.badBarCode = function(barcode) {
+  var tempRef = firebase.database().ref("/global/sugarinfoai/barcode/" + barcode)
+  return tempRef.update({
+    currentWeight: messageText
+  })
+}
+
 // exports.sugarTypes = function() {
 //   return [
 //     new fbTemplate.ChatAction('typing_on').get(),

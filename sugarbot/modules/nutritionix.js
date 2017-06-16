@@ -16,7 +16,6 @@ if (firebase.apps.length === 0) {
 }
 
 exports.getNutritionix = function(messageText, userId, timezone) {
-  console.log('In here homie')
   const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients'
   const request = require('request-promise')
   let nutOptions = {
@@ -37,6 +36,8 @@ exports.getNutritionix = function(messageText, userId, timezone) {
   }
   return request(nutOptions)
   .then(result => {
+    console.log('\n\n\n\n\n\n\n***************', result)
+    console.log('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
     let {foods} = result.body
     let sugar = 0
     let userText = ''
@@ -85,17 +86,20 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         }
       })
     })
-    .catch((error) => {
-      console.log('Error here....', error)
-    })
   })
   .catch(error => {
-    console.log("Hmm....error", error)
-    return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/").remove()
+    // console.log("\n\n\nHmm....error")
+    // console.log(error)
+    console.log("We couldn\'t match any of your foods")
+    return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/question").remove()
     .then(function() {
       return [
-        'I got confused...',
-        utils.otherOptions(false)
+        "We couldn\'t match any of your foods",
+        // utils.otherOptions(false)
+        new fbTemplate.Text("Would you like to manually enter the sugar amount?")
+        .addQuickReply('Yes  ✅', 'manual sugar track')
+        .addQuickReply('No  ❌', 'other options')
+        .get()
       ]
     })
   })

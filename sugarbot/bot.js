@@ -24,7 +24,7 @@ if (firebase.apps.length === 0) {
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
-    // console.log(request)
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@', request)
     // console.log(request.originalRequest)
     const {timestamp} = request.originalRequest
     var dateValue = new Date(timestamp)
@@ -41,6 +41,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const sugarCheckerFlag = snapshot.child('/temp/data/sugar/flag').val()
         const questionFlag = snapshot.child('/temp/data/question/flag').val()
         const autoUpc = snapshot.child('/temp/data/upc/auto').val()
+        const missingUPC = snapshot.child('/temp/data/missingUPC/flag').val()
+        const manual = snapshot.child('/temp/data/manual/flag').val()
         const manualUpc = snapshot.child('/temp/data/upc/manual').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
         const timezone = snapshot.child('/profile/timezone').val()
@@ -62,6 +64,75 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if (manualUpc && messageText) {
           return image.fdaProcess(userId, messageText)
+        }
+        else if (manual && messageText) {
+          return tempRef.child('/sugarIntake/' + date).once("value")
+          .then(tsnapshot => {
+            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const newVal = sugar + parseInt(messageText)
+            return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
+              sugar: newVal
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/manual').remove()
+              .then(() => {
+                // 'Got it! Added ' + parseInt(messageText) + 'g of sugar to your daily total',
+                let track = fire.calculateDailyTracking(weight, newVal)
+                return [
+                  'Added ' + parseInt(messageText) + 'g to your journal',
+                  'Your current daily sugar intake is ' + newVal + 'g',
+                  "Here's your daily intake",
+                  track,
+                  new fbTemplate.Text('When should I remind you to track your next meal?')
+                    .addQuickReply('1 hour', 'time1')
+                    .addQuickReply('3 hours', 'time3')
+                    .addQuickReply('5 hours', 'time5')
+                    .addQuickReply('Tomorrow', 'timeTomorrow')
+                    .addQuickReply("Don't ask", 'notime')
+                    .get()
+                ]
+              })
+            })
+          })
+        }
+        else if (missingUPC && messageText) {
+          return tempRef.child('/sugarIntake/' + date).once("value")
+          .then(tsnapshot => {
+            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const newVal = sugar + parseInt(messageText)
+            return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
+              sugar: newVal
+            })
+            .then(() => {
+              return tempRef.child("/global/sugarinfoai/" + userId + "/temp/data/").once("value")
+              .then(snapshot => {
+                const barcode = snapshot.child('missing/barcode').val()
+                return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
+                  sugar: sugar
+                })
+                .then(() => {
+                  return tempRef.child('/temp/data/missingUPC').remove()
+                  .then(() => {
+                    // 'Got it! Added ' + parseInt(messageText) + 'g of sugar to your daily total',
+                    let track = fire.calculateDailyTracking(weight, newVal)
+                    return [
+                      'Added ' + parseInt(messageText) + 'g to your journal',
+                      'Your current daily sugar intake is ' + newVal + 'g',
+                      "Here's your daily intake",
+                      track,
+                      new fbTemplate.Text('When should I remind you to track your next meal?')
+                        .addQuickReply('1 hour', 'time1')
+                        .addQuickReply('3 hours', 'time3')
+                        .addQuickReply('5 hours', 'time5')
+                        .addQuickReply('Tomorrow', 'timeTomorrow')
+                        .addQuickReply("Don't ask", 'notime')
+                        .get()
+                    ]
+                  })
+                })
+              })
+            })
+          })
         }
         else if (weight && messageText) {
           return tempRef.child('/preferences/' + date).update({
@@ -135,6 +206,22 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 .addQuickReply('Type UPC Number ⌨️', 'manual upc code entry')
                 .get()
               ]
+            }
+            case 'manual sugar track with upc': {
+              return tempRef.child('/temp/data/missingUPC').update({
+                flag: true
+              })
+              .then(() => {
+                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+              })
+            }
+            case 'manual sugar track': {
+              return tempRef.child('/temp/data/manual').update({
+                flag: true
+              })
+              .then(() => {
+                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+              })
             }
             case 'send upc label':
             case 'upc label':
@@ -215,7 +302,12 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 auto: false
               })
               .then(() => {
-                return 'Ok, please send me the UPC code'
+                return [
+                  new fbTemplate
+                  .Image('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/upc.jpg')
+                  .get(),
+                  'Ok, please send me the UPC code'
+                ]
               })
             }
             case 'preferences': {
@@ -232,12 +324,17 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return 'Ok, please tell me your weight in lbs (ex: 165)'
               })
             }
-            case 'goalWeight': {
+            case 'goalweight': {
+              console.log("***************************")
+              console.log('IN GOAL WEIGHT')
               return tempRef.child('/temp/data/preferences').update({
                 goalWeight: true
               })
               .then(() => {
                 return 'Ok, please tell me your goal weight in lbs (ex: 165)'
+              })
+              .catch(error => {
+                console.log('Somehting went wrong with firebase')
               })
             }
             case 'food knowledge': {
@@ -303,6 +400,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             default: {
               // return wolf.getWolfram(messageText, userId)
+              console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+              console.log('GOING INTO NUTRITIONIX')
               return nutrition.getNutritionix(messageText, userId, timezone)
             }
           }

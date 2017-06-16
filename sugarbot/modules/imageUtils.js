@@ -164,11 +164,20 @@ exports.fdaProcess = function (userId, barcode) {
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
       return tempRef.child('upc').remove()
       .then(() => {
-        return [
-          "Looks like you got me...I have no idea what you're eating",
-          utils.badBarCode(barcode)
-          // utils.otherOptions(false)
-        ]
+        return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/missing/").update({
+          barcode: barcode
+        })
+        .then(() => {
+          return [
+            "Looks like you got me...I have no idea what you're eating",
+            new fbTemplate.Text("Would you like to manually enter the sugar amount?")
+            .addQuickReply('Yes  ✅', 'manual sugar track with upc')
+            .addQuickReply('No  ❌', 'other options')
+            .get()
+            // utils.badBarCode(barcode)
+            // utils.otherOptions(false)
+          ]
+        })
       })
       //manual entry point here
     })
