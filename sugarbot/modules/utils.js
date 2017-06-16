@@ -229,11 +229,34 @@ exports.getGifUrl = function(number) {
   }
 }
 
-exports.badBarCode = function(barcode) {
-  var tempRef = firebase.database().ref("/global/sugarinfoai/barcode/" + barcode)
-  return tempRef.update({
-    currentWeight: messageText
-  })
+exports.sendReminder = function() {
+  return new fbTemplate.Text('When should I remind you to track your next meal?')
+  .addQuickReply('1 hour', 'time1')
+  .addQuickReply('3 hours', 'time3')
+  .addQuickReply('5 hours', 'time5')
+  .addQuickReply('Tomorrow', 'timeTomorrow')
+  .addQuickReply("Don't ask", 'notime')
+  .get()
+}
+
+exports.trackMood = function() {
+  return new fbTemplate.Text('Would you like to record your mood?')
+  .addQuickReply('🙂', 'positive mood')
+  .addQuickReply('😐', 'neutral mood')
+  .addQuickReply('🙁', 'negative mood')
+  .addQuickReply('Not now  ❌', 'not now mood')
+//   .addQuickReply('Don\'t ask again', 'don\'t ask mood again')
+  .get();
+}
+
+exports.trackAlertness = function() {
+  return new fbTemplate.Text('Would you like to record your alertness?')
+  .addQuickReply('😳', 'very alert')
+  .addQuickReply('😐', 'typical alertness')
+  .addQuickReply('😴', 'drowsy')
+  .addQuickReply('Not now  ❌', 'not now alertness')
+//   .addQuickReply('Don\'t ask again', 'do not ask alertness again')
+  .get();
 }
 
 // exports.sugarTypes = function() {
