@@ -135,10 +135,8 @@ exports.fdaProcess = function (userId, barcode) {
         foodName,
       })
       .then(() => {
-        console.log('here i got2')
         return tempRef.child('upc').remove()
         .then(() => {
-          console.log('there i came2')
           if (sugarPerServing !== 0) {
             return [
               sugarPerServingStr,
@@ -160,26 +158,63 @@ exports.fdaProcess = function (userId, barcode) {
       })
     })
     .catch(ferror => {
-      console.log('WHy error', ferror)
+      console.log('final fallback on firebase', barcode)
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-      return tempRef.child('upc').remove()
-      .then(() => {
-        return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/missing/").update({
-          barcode: barcode
-        })
-        .then(() => {
-          return [
-            "Looks like you got me...I have no idea what you're eating",
-            new fbTemplate.Text("Would you like to manually enter the sugar amount?")
-            .addQuickReply('Yes  ✅', 'manual sugar track with upc')
-            .addQuickReply('No  ❌', 'other options')
-            .get()
-            // utils.badBarCode(barcode)
-            // utils.otherOptions(false)
-          ]
-        })
+      var missRef = firebase.database().ref("/global/sugarinfoai/missing/" + barcode)
+      return missRef.once("value")
+      .then(function(snapshot) {
+        console.log('In here cuzzzz')
+        if (snapshot.exists()) {
+          let sugar = snapshot.child('sugar').val()
+          console.log('Sugar?', sugar)
+          return tempRef.child('food').set({
+            sugar,
+            foodName: 'missing upc'
+          })
+          .then(() => {
+            return tempRef.child('upc').remove()
+            .then(() => {
+              if (sugar !== 0) {
+                return [
+                  'This is what ' + sugar +'g of sugar looks like.',
+                  new fbTemplate
+                  .Image(utils.getGifUrl(sugar))
+                  .get(),
+                  fire.trackSugar()
+                ]
+              }
+              else {
+                return [
+                  'Congratulations! 🎉🎉 No sugars found!',
+                  utils.otherOptions(false)
+                ]
+              }
+            })
+          })
+        }
+        else {
+          return tempRef.child('upc').remove()
+          .then(() => {
+            return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/missing/").update({
+              barcode: barcode
+            })
+            .then(() => {
+              return [
+                "Looks like you got me...I have no idea what you're eating",
+                new fbTemplate.Text("Would you like to manually enter the sugar amount? We can store it for future use 🙂")
+                .addQuickReply('Yes  ✅', 'manual sugar track with upc')
+                .addQuickReply('No  ❌', 'other options')
+                .get()
+                // utils.badBarCode(barcode)
+                // utils.otherOptions(false)
+              ]
+            })
+          })
+        }
       })
-      //manual entry point here
+      .catch((error) => {
+        console.log('WHYYYYY', error)
+      })
     })
   })
 }

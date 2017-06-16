@@ -99,24 +99,25 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return tempRef.child('/sugarIntake/' + date).once("value")
           .then(tsnapshot => {
             const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
-            const newVal = sugar + parseInt(messageText)
+            const inputSugar = parseInt(messageText)
+            const newVal = sugar + inputSugar
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
               sugar: newVal
             })
             .then(() => {
-              return tempRef.child("/global/sugarinfoai/" + userId + "/temp/data/").once("value")
+              return tempRef.child("/temp/data/missing/").once("value")
               .then(snapshot => {
-                const barcode = snapshot.child('missing/barcode').val()
+                const barcode = snapshot.child('barcode').val()
                 return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
-                  sugar: sugar
+                  sugar: inputSugar
                 })
                 .then(() => {
-                  return tempRef.child('/temp/data/missingUPC').remove()
+                  return tempRef.child('/temp/data/').remove()
                   .then(() => {
-                    // 'Got it! Added ' + parseInt(messageText) + 'g of sugar to your daily total',
+                    // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
                     let track = fire.calculateDailyTracking(weight, newVal)
                     return [
-                      'Added ' + parseInt(messageText) + 'g to your journal',
+                      'Added ' + inputSugar + 'g to your journal',
                       'Your current daily sugar intake is ' + newVal + 'g',
                       "Here's your daily intake",
                       track,
