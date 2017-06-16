@@ -67,13 +67,19 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         flag: false
       })
       .then(() => {
-        if (sugar) {
+        if (Math.round(sugar) > 2) {
           return [
             userText,
             'This is what ' + sugar +'g of sugar looks like.',
             new fbTemplate
             .Image(utils.getGifUrl(Math.round(sugar)))
             .get(),
+            fire.trackSugar()
+          ]
+        }
+        else if (sugar > 0) {
+          return [
+            userText,
             fire.trackSugar()
           ]
         }
