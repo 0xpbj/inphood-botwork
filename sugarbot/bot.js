@@ -329,9 +329,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 .get()
             }
             case 'time1': {
-              return firebase.database().ref("/global/sugarinfoai/reminders/").update({
-                reminder: timestamp + (1*3600*1000),
-                userId
+              const time = timestamp + (1*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time1: time
               })
               .then(() => {
                 return [
@@ -341,9 +341,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'time3': {
-              return tempRef.child('/preferences/nextReminder').update({
-                reminder: timestamp + (3*3600*1000),
-                userId
+              const time = timestamp + (3*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time3: time
               })
               .then(() => {
                 return [
@@ -353,9 +353,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'time5': {
-              return tempRef.child('/preferences/nextReminder').update({
-                reminder: timestamp + (5*3600*1000),
-                userId
+              const time = timestamp + (5*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time5: time
               })
               .then(() => {
                 return [
@@ -365,9 +365,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'timeTomorrow': {
-              return tempRef.child('/preferences/nextReminder').update({
-                reminder: timestamp + (24*3600*1000),
-                userId
+              const time = timestamp + (24*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                timeTomorrow: time
               })
               .then(() => {
                 return [
