@@ -22,9 +22,10 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started']
+let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back']
   
 module.exports = botBuilder(function (request, originalApiRequest) {
+  // return 'hello world'
   if (request.type === 'facebook') {
     console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@', request)
     // console.log(request.originalRequest)
@@ -49,10 +50,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       .then(function(snapshot) {
         const sugarCheckerFlag = snapshot.child('/temp/data/sugar/flag').val()
         const questionFlag = snapshot.child('/temp/data/question/flag').val()
-        const autoUpc = snapshot.child('/temp/data/upc/auto').val()
+        const upcFlag = snapshot.child('/temp/data/upc/flag').val()
         const missingUPC = snapshot.child('/temp/data/missingUPC/flag').val()
         const manual = snapshot.child('/temp/data/manual/flag').val()
-        const manualUpc = snapshot.child('/temp/data/upc/manual').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
         const timezone = snapshot.child('/profile/timezone').val()
         const weight = snapshot.child('/temp/data/preferences/weight').val()
@@ -65,12 +65,12 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return nutrition.getNutritionix(messageText, userId, timezone)
           // return wolf.getWolfram(messageText, userId)
         }
-        else if ((autoUpc || cvFlag) && messageAttachments) {
+        else if ((upcFlag || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
           fire.trackUserProfile(userId)
-          return image.processLabelImage(url, userId, autoUpc, cvFlag)
+          return image.processLabelImage(url, userId, upcFlag, cvFlag)
         }
-        else if (manualUpc && messageText) {
+        else if (upcFlag && messageText) {
           return image.fdaProcess(userId, messageText)
         }
         else if (manual && messageText) {
@@ -181,15 +181,22 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'other options': {
               return utils.otherOptions(false)
             }
-            case 'analyze nutrition': {
-              return [
-                new fbTemplate.ChatAction('typing_on').get(),
-                new fbTemplate.Pause(100).get(),
-                new fbTemplate.Text("Ok, here are your options.")
-                .addQuickReply('UPC Label Photo 🏷', 'send upc label')
-                .addQuickReply('Type UPC Number ⌨️', 'manual upc code entry')
-                .get()
-              ]
+            case 'send upc label':
+            case 'upc label':
+            case 'upc':
+            case 'manual upc code entry':
+            case 'analyze upc': {
+              return tempRef.child('/temp/data/upc').update({
+                flag: true
+              })
+              .then(() => {
+                return [
+                  new fbTemplate
+                  .Image('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/upc.jpg')
+                  .get(),
+                  "Ok. You can send me a photo of the UPC 📷 or type the number manually ⌨️"
+                ]
+              })
             }
             case 'manual sugar track with upc': {
               return tempRef.child('/temp/data/missingUPC').update({
@@ -207,16 +214,14 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
               })
             }
-            case 'send upc label':
-            case 'upc label':
-            case 'upc': {
-              return tempRef.child('/temp/data/upc').update({
-                auto: true,
-                manual: false
-              })
-              .then(() => {
-                return 'Please send me a picture of the UPC label you want to check'
-              })
+            case 'journal':
+            case 'sugar journal':
+            case 'food journal': {
+              return new fbTemplate.Text('What would you like to do next?')
+              .addQuickReply('UPC of Food 🏷', 'analyze upc')
+              .addQuickReply('Describe Food ✏️', 'food question')
+              .addQuickReply('Photo of Food 🥗', 'send food picture')
+              .get()
             }
             case 'food question':
             case 'question': {
@@ -280,20 +285,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'more details': {
               return wolf.detailedWolfram(userId)
             }
-            case 'manual upc code entry': {
-              return tempRef.child('/temp/data/upc').update({
-                manual: true,
-                auto: false
-              })
-              .then(() => {
-                return [
-                  new fbTemplate
-                  .Image('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/upc.jpg')
-                  .get(),
-                  'Ok, please send me the UPC code'
-                ]
-              })
-            }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
                 .addQuickReply('Add current weight', 'weight')
@@ -309,8 +300,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'goalweight': {
-              console.log("***************************")
-              console.log('IN GOAL WEIGHT')
               return tempRef.child('/temp/data/preferences').update({
                 goalWeight: true
               })
@@ -321,6 +310,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 console.log('Somehting went wrong with firebase')
               })
             }
+            case 'sugar knowledge':
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
                 .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')

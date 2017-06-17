@@ -251,10 +251,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         return exports.fdaProcess(userId, response)
       })
       .catch(() => {
-        return new fbTemplate.Text("I couldn't read that barcode...would you like to manually enter the barcode?")
-        .addQuickReply('Enter UPC Code  ⌨️', 'manual upc code entry')
-        .addQuickReply('Resend UPC Label 🏷', 'send upc label')
-        .addQuickReply('Main Menu 🎟', 'other options')
+        return new fbTemplate.Text("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
+        .addQuickReply('Yes  ✅', 'analyze upc')
+        .addQuickReply('No  ❌', 'other options')
         .get()
       })
     }
@@ -310,9 +309,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
     return [
       'Looks like you confused me...can you help me out?',
       new fbTemplate.Text("Ok, here are your options.")
-      .addQuickReply('Check UPC Label 🏷', 'send upc label')
-      .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Ask a food question? 📝', 'food question')
+      .addQuickReply('Sugar Journal ✏️', 'food journal')
+      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
+      .addQuickReply('My Preferences ⚙️', 'preferences')
       .get()
     ]
   })

@@ -47,8 +47,9 @@ exports.getNutritionix = function(messageText, userId, timezone) {
     let userText = ''
     let foodName = ''
     for (let food of foods) {
-      sugar += food.nf_sugars
-      userText += 'Sugar in ' + food.food_name + ': ' + food.nf_sugars + 'g\n'
+      let foodSugar = food.nf_sugars ? Math.round(food.nf_sugars) : 0
+      sugar += foodSugar
+      userText += 'Sugar in ' + food.food_name + ': ' + foodSugar + 'g\n'
       foodName += food.food_name + '\n'
     }
     if (userText !== '') {

@@ -94,20 +94,20 @@ exports.otherOptions = function(option) {
     return [
       "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
-        .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-        .addQuickReply('Food Journal ✏️', 'food question')
-        .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Food Knowledge 📚', 'food knowledge')
+        // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
+        .addQuickReply('Sugar Journal ✏️', 'food journal')
+        // .addQuickReply('Send food image 🥗', 'send food picture')
+        .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
         .addQuickReply('My Preferences ⚙️', 'preferences')
         .get()
     ]
   }
   else {
     return new fbTemplate.Text('What would you like to do next?')
-      .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-      .addQuickReply('Food Journal ✏️', 'food question')
-      .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Food Knowledge 📚', 'food knowledge')
+      // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
+      .addQuickReply('Sugar Journal ✏️', 'food journal')
+      // .addQuickReply('Send food image 🥗', 'send food picture')
+      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
       .addQuickReply('My Preferences ⚙️', 'preferences')
       .get();
   }
