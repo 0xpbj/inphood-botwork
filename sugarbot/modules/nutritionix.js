@@ -71,7 +71,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         if (Math.round(sugar) > 2) {
           return [
             userText,
-            'This is what ' + sugar +'g of sugar looks like.',
+            'This is what ' + sugar +'g of sugar looks like approximately.',
             new fbTemplate
             .Image(utils.getGifUrl(Math.round(sugar)))
             .get(),

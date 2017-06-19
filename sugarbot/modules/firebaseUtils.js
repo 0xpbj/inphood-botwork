@@ -19,6 +19,7 @@ if (firebase.apps.length === 0) {
 exports.trackSugar = function() {
   return new fbTemplate.Text('Would you like to add it to your journal?')
   .addQuickReply('Yes  ✅', 'add sugar')
+  .addQuickReply('Different Amount 🛠', 'custom sugar for food')
   .addQuickReply('No  ❌', 'remove temp food data')
   .get();
 }
@@ -58,23 +59,23 @@ exports.trackUserProfile = function(userId) {
   })
 }
 
-exports.calculateDailyTracking = function(weight, sugar) {
+exports.calculateDailyTracking = function(weight, sugar, userId, goalSugar) {
   //default to 60 g of sugar, 15 cubes of sugar
   // ⬜️  - unused
   // ☑️  - used
   // 🅾️  - over
-  let used = Math.round(sugar / 4)
-  console.log('USED', used)
+  let quota = Math.round(goalSugar/4)
+  let used = Math.round(sugar/4)
   let over = 0
   let unused = 0
   let retLine = ''
-  if (used > 15) {
-    over = used - 15
-    used = 15
+  if (used > quota) {
+    over = used - quota
+    used = quota
     unused = 0
   }
   else {
-    unused = 15 - used
+    unused = quota - used
   }
   for (let i = 0; i < over; i++) {
     retLine += '🅾️'
@@ -85,6 +86,7 @@ exports.calculateDailyTracking = function(weight, sugar) {
   for (let i = 0; i < unused; i++) {
     retLine += '⬜️ '
   }
+  console.log(retLine)
   return retLine
 }
 
@@ -108,21 +110,25 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     })
     var weight = tsnapshot.child('/preferences/currentWeight').val()
     var goalWeight = tsnapshot.child('/preferences/currentGoalWeight').val()
+    var goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
     var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
     return sugarRef.once("value")
     .then(function(snapshot) {
       var val = snapshot.child('sugar').val()
       if (!val)
         val = 0
+      if (!goalSugar)
+        goalSugar = 40
       var newVal = parseInt(val) + parseInt(sugar)
       return sugarRef.update({ sugar: newVal })
       .then(function() {
         return tempRef.child('/temp/data/food').remove()
         .then(() => {
-          let track = exports.calculateDailyTracking(weight, newVal)
+          let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
+          console.log('*****************', track)
           return [
             'Added ' + sugar + 'g to your journal',
-            'Your current daily sugar intake is ' + newVal + 'g',
+            'Your current daily sugar intake is ' + newVal + ' of ' + goalSugar + 'g',
             "Here's your daily intake",
             track,
             utils.trackAlertness()

@@ -39,6 +39,7 @@ exports.fdaProcess = function (userId, barcode) {
   return frequest(fdaOptions)
   .then(fdaResult => {
     // if (fdaResult.body.list.item)
+    console.log('FDA RESULT', fdaResult.body)
     const foodName = fdaResult.body.list.item[0].name
     // const resText = 'We found ' + foodName + '. Nutrition information is coming soon...'
     // This report prints out information about the item from the FDA database
@@ -69,7 +70,7 @@ exports.fdaProcess = function (userId, barcode) {
             console.log('there i came')
             if (sugar >= 3) {
               return [
-                sugarPerServingStr,
+                sugarPerServingStr + '(Source: https://ndb.nal.usda.gov/ndb/search/list?qlookup=' + barcode + ')',
                 'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
                 'This is what ' + sugar +'g of sugar looks like approximately.',
                 new fbTemplate
@@ -86,7 +87,7 @@ exports.fdaProcess = function (userId, barcode) {
                 fire.trackSugar()
               ]
             }
-            else if (sugar === 0){
+            else if (sugar === 0) {
               return [
                 'Congratulations! 🎉🎉 No sugars found!',
                 utils.otherOptions(false)
@@ -141,7 +142,7 @@ exports.fdaProcess = function (userId, barcode) {
             return [
               sugarPerServingStr,
               'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-              'This is what ' + sugarPerServing +'g of sugar looks like.',
+              'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
               new fbTemplate
               .Image(utils.getGifUrl(sugarPerServing))
               .get(),
@@ -176,7 +177,7 @@ exports.fdaProcess = function (userId, barcode) {
             .then(() => {
               if (sugar !== 0) {
                 return [
-                  'This is what ' + sugar +'g of sugar looks like.',
+                  'This is what ' + sugar +'g of sugar looks like approximately.',
                   new fbTemplate
                   .Image(utils.getGifUrl(sugar))
                   .get(),
@@ -268,34 +269,39 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         // do something with response
         // console.log('Clarifai response', cresponse)
         const {concepts} = cresponse.outputs[0].data
-        let ing = ''
-        let i = 0
-        for (let obj of concepts) {
-          if (obj.value > 0.8) {
-            if (i === 0) {
-              ing += ': ' + obj.name
-            }
-            ing += ', ' + obj.name
-            i++
-          }
-        }
-        return nutrition.getNutritionix(ing, userId)
+        // let ing = ''
+        // let i = 0
+        // for (let obj of concepts) {
+        //   if (obj.value > 0.8) {
+        //     if (i === 0) {
+        //       ing += ': ' + obj.name
+        //     }
+        //     ing += ', ' + obj.name
+        //     i++
+        //   }
+        // }
+        // return nutrition.getNutritionix(ing, userId)
         // console.log('Clarifai concepts', concepts)
-        // let crtext = "Hmm...sorry I didn't find any food in the picture..."
+        let crtext = "Hmm...sorry I didn't find any food in the picture. Can you please tell me what the ingredients are?"
         // if (ing !== '') {
         //   crtext = "Here's what I see" + ing
         // }
-        // console.log('Clarifai response', crtext)
-        // var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
-        // return tempRef.child('cv').set({
-        //   flag: false
-        // })
-        // .then(() => {
-        //   return [
-        //     crtext,
-        //     utils.otherOptions(false)
-        //   ]
-        // })
+        if (concepts[0]) {
+          crtext = "Here's what I see: " + concepts[0].name + ". Can you please tell me what the ingredients are?"
+        }
+        console.log('Clarifai response', crtext)
+        var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
+        return tempRef.child('cv').set({
+          flag: false
+        })
+        .then(() => {
+          return tempRef.child('question').update({
+            flag: true
+          })
+          .then(() => {
+            return crtext
+          })
+        })
         },
         function(cerr) {
           // there was an error

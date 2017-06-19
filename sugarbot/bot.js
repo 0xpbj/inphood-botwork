@@ -22,7 +22,7 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back']
+let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel']
   
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
@@ -55,6 +55,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const manual = snapshot.child('/temp/data/manual/flag').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
         const timezone = snapshot.child('/profile/timezone').val()
+        const goalSugar = snapshot.child('/temp/data/preferences/goalSugar').val()
         const weight = snapshot.child('/temp/data/preferences/weight').val()
         const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
@@ -74,11 +75,12 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return image.fdaProcess(userId, messageText)
         }
         else if (manual && messageText) {
-          return tempRef.child('/sugarIntake/' + date).once("value")
+          return tempRef.once("value")
           .then(tsnapshot => {
-            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val() 
             const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
+            const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
               sugar: newVal
             })
@@ -86,10 +88,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               return tempRef.child('/temp/data/manual').remove()
               .then(() => {
                 // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                let track = fire.calculateDailyTracking(weight, newVal)
+                let track = fire.calculateDailyTracking(weight, newVal, userId)
                 return [
-                  'Added ' + sugar + 'g to your journal',
-                  'Your current daily sugar intake is ' + total + 'g',
+                  'Added ' + inputSugar + 'g to your journal',
+                  'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
                   "Here's your daily intake",
                   track,
                   // utils.sendReminder()
@@ -100,11 +102,12 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           })
         }
         else if (missingUPC && messageText) {
-          return tempRef.child('/sugarIntake/' + date).once("value")
+          return tempRef.once("value")
           .then(tsnapshot => {
-            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val() 
             const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
+            const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
               sugar: newVal
             })
@@ -119,10 +122,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                   return tempRef.child('/temp/data/').remove()
                   .then(() => {
                     // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                    let track = fire.calculateDailyTracking(weight, newVal)
+                    let track = fire.calculateDailyTracking(weight, newVal, userId)
                     return [
-                      'Added ' + sugar + 'g to your journal',
-                      'Your current daily sugar intake is ' + total + 'g',
+                      'Added ' + inputSugar + 'g to your journal',
+                      'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
                       "Here's your daily intake",
                       track,
                       // utils.sendReminder()
@@ -139,7 +142,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             weight: messageText
           })
           .then(() => {
-            return tempRef.child('/preferences/currentWeight').update({
+            return tempRef.child('/preferences/').update({
               currentWeight: messageText
             })
             .then(() => {
@@ -160,7 +163,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             goalWeight: messageText
           })
           .then(() => {
-            return tempRef.child('/preferences/currentGoalWeight').update({
+            return tempRef.child('/preferences/').update({
               currentGoalWeight: messageText
             })
             .then(() => {
@@ -170,6 +173,27 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               .then(() => {
                 return [
                   'Got it! Your goal weight added: ' + messageText,
+                  utils.otherOptions(false)
+                ]
+              })
+            })
+          })
+        }
+        else if (goalSugar && messageText) {
+          return tempRef.child('/preferences/' + date).update({
+            goalSugar: messageText
+          })
+          .then(() => {
+            return tempRef.child('/preferences/').update({
+              currentGoalSugar: messageText
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/preferences/').update({
+                goalSugar: false
+              })
+              .then(() => {
+                return [
+                  'Got it! Your sugar goal added: ' + messageText,
                   utils.otherOptions(false)
                 ]
               })
@@ -203,7 +227,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
               })
             }
             case 'manual sugar track': {
@@ -211,7 +235,24 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
+              })
+            }
+            case 'custom sugar for food': {
+              return new fbTemplate.Text('What would you like to do next?')
+              .addQuickReply('Different Serving Size', 'manual sugar track')
+              .addQuickReply('Incorrect Sugar', 'incorrect sugar information')
+              .get()
+            }
+            case 'incorrect sugar information': {
+              return tempRef.child('/temp/data/manual').update({
+                flag: true
+              })
+              .then(() => {
+                return [
+                  "I apologize about the discrepancy. I will try to get the correct information for you next time! 🤕",
+                  "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
+                ]
               })
             }
             case 'journal':
@@ -239,7 +280,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me a picture of your meal and I'll try to guess how much sugar you're eating"
+                return "Please send me a picture of your meal and I'll try to guess what you're eating"
               })
             }
             case 'another random sugar fact':
@@ -287,6 +328,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
+                .addQuickReply('Add sugar goal', 'goalsugar')
                 .addQuickReply('Add current weight', 'weight')
                 .addQuickReply('Add goal weight', 'goalWeight')
                 .get()
@@ -307,7 +349,18 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return 'Ok, please tell me your goal weight in lbs (ex: 165)'
               })
               .catch(error => {
-                console.log('Somehting went wrong with firebase')
+                console.log('Something went wrong with firebase')
+              })
+            }
+            case 'goalsugar': {
+              return tempRef.child('/temp/data/preferences').update({
+                goalSugar: true
+              })
+              .then(() => {
+                return 'Ok, please tell me your sugar goal in grams (ex: 40)'
+              })
+              .catch(error => {
+                console.log('Something went wrong with firebase')
               })
             }
             case 'sugar knowledge':
