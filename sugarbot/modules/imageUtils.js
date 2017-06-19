@@ -135,10 +135,8 @@ exports.fdaProcess = function (userId, barcode) {
         foodName,
       })
       .then(() => {
-        console.log('here i got2')
         return tempRef.child('upc').remove()
         .then(() => {
-          console.log('there i came2')
           if (sugarPerServing !== 0) {
             return [
               sugarPerServingStr,
@@ -160,17 +158,63 @@ exports.fdaProcess = function (userId, barcode) {
       })
     })
     .catch(ferror => {
-      console.log('WHy error', ferror)
+      console.log('final fallback on firebase', barcode)
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-      return tempRef.child('upc').remove()
-      .then(() => {
-        return [
-          "Looks like you got me...I have no idea what you're eating",
-          utils.badBarCode(barcode)
-          // utils.otherOptions(false)
-        ]
+      var missRef = firebase.database().ref("/global/sugarinfoai/missing/" + barcode)
+      return missRef.once("value")
+      .then(function(snapshot) {
+        console.log('In here cuzzzz')
+        if (snapshot.exists()) {
+          let sugar = snapshot.child('sugar').val()
+          console.log('Sugar?', sugar)
+          return tempRef.child('food').set({
+            sugar,
+            foodName: 'missing upc'
+          })
+          .then(() => {
+            return tempRef.child('upc').remove()
+            .then(() => {
+              if (sugar !== 0) {
+                return [
+                  'This is what ' + sugar +'g of sugar looks like.',
+                  new fbTemplate
+                  .Image(utils.getGifUrl(sugar))
+                  .get(),
+                  fire.trackSugar()
+                ]
+              }
+              else {
+                return [
+                  'Congratulations! 🎉🎉 No sugars found!',
+                  utils.otherOptions(false)
+                ]
+              }
+            })
+          })
+        }
+        else {
+          return tempRef.child('upc').remove()
+          .then(() => {
+            return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/missing/").update({
+              barcode: barcode
+            })
+            .then(() => {
+              return [
+                "Looks like you got me...I have no idea what you're eating",
+                new fbTemplate.Text("Would you like to manually enter the sugar amount? We can store it for future use 🙂")
+                .addQuickReply('Yes  ✅', 'manual sugar track with upc')
+                .addQuickReply('No  ❌', 'other options')
+                .get()
+                // utils.badBarCode(barcode)
+                // utils.otherOptions(false)
+              ]
+            })
+          })
+        }
       })
-      //manual entry point here
+      .catch((error) => {
+        console.log('WHYYYYY', error)
+      })
     })
   })
 }
@@ -207,10 +251,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         return exports.fdaProcess(userId, response)
       })
       .catch(() => {
-        return new fbTemplate.Text("I couldn't read that barcode...would you like to manually enter the barcode?")
-        .addQuickReply('Enter UPC Code  ⌨️', 'manual upc code entry')
-        .addQuickReply('Resend UPC Label 🏷', 'send upc label')
-        .addQuickReply('Main Menu 🎟', 'other options')
+        return new fbTemplate.Text("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
+        .addQuickReply('Yes  ✅', 'analyze upc')
+        .addQuickReply('No  ❌', 'other options')
         .get()
       })
     }
@@ -266,9 +309,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
     return [
       'Looks like you confused me...can you help me out?',
       new fbTemplate.Text("Ok, here are your options.")
-      .addQuickReply('Check UPC Label 🏷', 'send upc label')
-      .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Ask a food question? 📝', 'food question')
+      .addQuickReply('Sugar Journal ✏️', 'food journal')
+      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
+      .addQuickReply('My Preferences ⚙️', 'preferences')
       .get()
     ]
   })

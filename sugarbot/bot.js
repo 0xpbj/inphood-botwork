@@ -22,9 +22,12 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
+let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back']
+  
 module.exports = botBuilder(function (request, originalApiRequest) {
+  // return 'hello world'
   if (request.type === 'facebook') {
-    // console.log(request)
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@', request)
     // console.log(request.originalRequest)
     const {timestamp} = request.originalRequest
     var dateValue = new Date(timestamp)
@@ -35,18 +38,25 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     return firebase.auth().signInAnonymously()
     .then(() => {
       const userId = request.originalRequest.sender.id
+      var messageText = request.text ? request.text.toLowerCase() : null
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
+      if (bailArr.indexOf(messageText) > -1) {
+        return tempRef.child('/temp/data/').remove()
+        .then(() => {
+          return utils.otherOptions(true)
+        })
+      }
       return tempRef.once("value")
       .then(function(snapshot) {
         const sugarCheckerFlag = snapshot.child('/temp/data/sugar/flag').val()
         const questionFlag = snapshot.child('/temp/data/question/flag').val()
-        const autoUpc = snapshot.child('/temp/data/upc/auto').val()
-        const manualUpc = snapshot.child('/temp/data/upc/manual').val()
+        const upcFlag = snapshot.child('/temp/data/upc/flag').val()
+        const missingUPC = snapshot.child('/temp/data/missingUPC/flag').val()
+        const manual = snapshot.child('/temp/data/manual/flag').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
         const timezone = snapshot.child('/profile/timezone').val()
         const weight = snapshot.child('/temp/data/preferences/weight').val()
         const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
-        var messageText = request.text ? request.text.toLowerCase() : null
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
           return fire.sugarChecker(messageText, userId)
@@ -55,13 +65,74 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return nutrition.getNutritionix(messageText, userId, timezone)
           // return wolf.getWolfram(messageText, userId)
         }
-        else if ((autoUpc || cvFlag) && messageAttachments) {
+        else if ((upcFlag || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
           fire.trackUserProfile(userId)
-          return image.processLabelImage(url, userId, autoUpc, cvFlag)
+          return image.processLabelImage(url, userId, upcFlag, cvFlag)
         }
-        else if (manualUpc && messageText) {
+        else if (upcFlag && messageText) {
           return image.fdaProcess(userId, messageText)
+        }
+        else if (manual && messageText) {
+          return tempRef.child('/sugarIntake/' + date).once("value")
+          .then(tsnapshot => {
+            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const inputSugar = parseInt(messageText)
+            const newVal = sugar + inputSugar
+            return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
+              sugar: newVal
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/manual').remove()
+              .then(() => {
+                // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
+                let track = fire.calculateDailyTracking(weight, newVal)
+                return [
+                  'Added ' + sugar + 'g to your journal',
+                  'Your current daily sugar intake is ' + total + 'g',
+                  "Here's your daily intake",
+                  track,
+                  // utils.sendReminder()
+                  utils.trackAlertness()
+                ]
+              })
+            })
+          })
+        }
+        else if (missingUPC && messageText) {
+          return tempRef.child('/sugarIntake/' + date).once("value")
+          .then(tsnapshot => {
+            const sugar = tsnapshot.child('/dailyTotal/sugar').val() 
+            const inputSugar = parseInt(messageText)
+            const newVal = sugar + inputSugar
+            return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
+              sugar: newVal
+            })
+            .then(() => {
+              return tempRef.child("/temp/data/missing/").once("value")
+              .then(snapshot => {
+                const barcode = snapshot.child('barcode').val()
+                return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
+                  sugar: inputSugar
+                })
+                .then(() => {
+                  return tempRef.child('/temp/data/').remove()
+                  .then(() => {
+                    // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
+                    let track = fire.calculateDailyTracking(weight, newVal)
+                    return [
+                      'Added ' + sugar + 'g to your journal',
+                      'Your current daily sugar intake is ' + total + 'g',
+                      "Here's your daily intake",
+                      track,
+                      // utils.sendReminder()
+                      utils.trackAlertness()
+                    ]
+                  })
+                })
+              })
+            })
+          })
         }
         else if (weight && messageText) {
           return tempRef.child('/preferences/' + date).update({
@@ -107,45 +178,50 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if (messageText) {
           switch (messageText) {
-            case 'main menu':
-            case 'refresh':
-            case 'reset':
-            case 'start':
-            case 'hey':
-            case 'menu':
-            case '?':
-            case 'help':
-            case 'hi':
-            case 'hello':
-            case 'get started': {
-             return tempRef.child('/temp/data/').remove()
-              .then(() => {
-                return utils.otherOptions(true)
-              })
-            }
             case 'other options': {
               return utils.otherOptions(false)
             }
-            case 'analyze nutrition': {
-              return [
-                new fbTemplate.ChatAction('typing_on').get(),
-                new fbTemplate.Pause(100).get(),
-                new fbTemplate.Text("Ok, here are your options.")
-                .addQuickReply('UPC Label Photo 🏷', 'send upc label')
-                .addQuickReply('Type UPC Number ⌨️', 'manual upc code entry')
-                .get()
-              ]
-            }
             case 'send upc label':
             case 'upc label':
-            case 'upc': {
+            case 'upc':
+            case 'manual upc code entry':
+            case 'analyze upc': {
               return tempRef.child('/temp/data/upc').update({
-                auto: true,
-                manual: false
+                flag: true
               })
               .then(() => {
-                return 'Please send me a picture of the UPC label you want to check'
+                return [
+                  new fbTemplate
+                  .Image('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/upc.jpg')
+                  .get(),
+                  "Ok. You can send me a photo of the UPC 📷 or type the number manually ⌨️"
+                ]
               })
+            }
+            case 'manual sugar track with upc': {
+              return tempRef.child('/temp/data/missingUPC').update({
+                flag: true
+              })
+              .then(() => {
+                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+              })
+            }
+            case 'manual sugar track': {
+              return tempRef.child('/temp/data/manual').update({
+                flag: true
+              })
+              .then(() => {
+                return "Please send me a the amount of sugar in grams you'd like to add: (Ex: 20)"
+              })
+            }
+            case 'journal':
+            case 'sugar journal':
+            case 'food journal': {
+              return new fbTemplate.Text('What would you like to do next?')
+              .addQuickReply('UPC of Food 🏷', 'analyze upc')
+              .addQuickReply('Describe Food ✏️', 'food question')
+              .addQuickReply('Photo of Food 🥗', 'send food picture')
+              .get()
             }
             case 'food question':
             case 'question': {
@@ -209,15 +285,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'more details': {
               return wolf.detailedWolfram(userId)
             }
-            case 'manual upc code entry': {
-              return tempRef.child('/temp/data/upc').update({
-                manual: true,
-                auto: false
-              })
-              .then(() => {
-                return 'Ok, please send me the UPC code'
-              })
-            }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
                 .addQuickReply('Add current weight', 'weight')
@@ -232,14 +299,18 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return 'Ok, please tell me your weight in lbs (ex: 165)'
               })
             }
-            case 'goalWeight': {
+            case 'goalweight': {
               return tempRef.child('/temp/data/preferences').update({
                 goalWeight: true
               })
               .then(() => {
                 return 'Ok, please tell me your goal weight in lbs (ex: 165)'
               })
+              .catch(error => {
+                console.log('Somehting went wrong with firebase')
+              })
             }
+            case 'sugar knowledge':
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
                 .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
@@ -248,9 +319,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 .get()
             }
             case 'time1': {
-              return tempRef.child('/preferences/nextReminder').update({
-                time: Date.now() + (1*3600*1000),
-                reminder1: true
+              const time = timestamp + (1*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time1: time
               })
               .then(() => {
                 return [
@@ -260,8 +331,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'time3': {
-              return tempRef.child('/preferences/nextReminder').update({
-                time: Date.now() + (3*3600*1000)
+              const time = timestamp + (3*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time3: time
               })
               .then(() => {
                 return [
@@ -271,8 +343,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'time5': {
-              return tempRef.child('/preferences/nextReminder').update({
-                time: Date.now() + (5*3600*1000)
+              const time = timestamp + (5*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                time5: time
               })
               .then(() => {
                 return [
@@ -282,8 +355,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             case 'timeTomorrow': {
-              return tempRef.child('/preferences/nextReminder').update({
-                time: Date.now() + (24*3600*1000)
+              const time = timestamp + (24*3600*1000)
+              return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
+                timeTomorrow: time
               })
               .then(() => {
                 return [
@@ -301,8 +375,74 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case 'very alert': {
+              return tempRef.child('alertness/' + date + '/' + timestamp).update({
+                feeling: 'very alert'
+              })
+              .then(() => {
+                return utils.trackMood()
+              })
+            }
+            case 'typical alertness': {
+              return tempRef.child('alertness/' + date + '/' + timestamp).update({
+                feeling: 'typical alertness'
+              })
+              .then(() => {
+                return utils.trackMood()
+              })
+            }
+            case 'drowsy': {
+              return tempRef.child('alertness/' + date + '/' + timestamp).update({
+                feeling: 'drowsy'
+              })
+              .then(() => {
+                return utils.trackMood()
+              })
+            }
+            case 'not now alertness': {
+              return tempRef.child('alertness/' + date + '/' + timestamp).update({
+                feeling: 'not now'
+              })
+              .then(() => {
+                return utils.trackMood()
+              })
+            }
+            case 'positive mood': {
+              return tempRef.child('mood/' + date + '/' + timestamp).update({
+                mood: 'positive'
+              })
+              .then(() => {
+                return utils.sendReminder()
+              })
+            }
+            case 'negative mood': {
+              return tempRef.child('mood/' + date + '/' + timestamp).update({
+                mood: 'negative'
+              })
+              .then(() => {
+                return utils.sendReminder()
+              })
+            }
+            case 'neutral mood': {
+              return tempRef.child('mood/' + date + '/' + timestamp).update({
+                mood: 'neutral'
+              })
+              .then(() => {
+                return utils.sendReminder()
+              })
+            }
+            case 'not now mood': {
+              return tempRef.child('mood/' + date + '/' + timestamp).update({
+                mood: 'not now'
+              })
+              .then(() => {
+                return utils.sendReminder()
+              })
+            }
             default: {
               // return wolf.getWolfram(messageText, userId)
+              console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+              console.log('GOING INTO NUTRITIONIX')
               return nutrition.getNutritionix(messageText, userId, timezone)
             }
           }

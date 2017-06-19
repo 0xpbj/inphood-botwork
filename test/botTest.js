@@ -51,11 +51,12 @@ http.createServer(function (request, response) {
       // var url = 'https://scontent.fsnc1-1.fna.fbcdn.net/v/t35.0-12/19105061_10101449302218559_789990656_o.jpg?oh=3d6a310ea94a4abeb0faa69fb7be8190&oe=5941977E'
       // var messageText = '1 cup blueberries, 2 tbsp honey, 1 cup greek yogurt'
       // return fire.addSugarToFirebase(userId, date, fulldate)
-      // return nutrition.getNutritionix(messageText, userId, timezone)
+      var messageText = 'Orgain'
+      return nutrition.getNutritionix(messageText, userId, timezone)
       // var url = 'https://scontent.xx.fbcdn.net/v/t34.0-0/p480x480/19114431_10101449631638399_768503254_n.jpg?_nc_ad=z-m&oh=5f765dc0980d3175c26cc7bf37827abc&oe=59417504'
       // var url = 'https://scontent.fsnc1-1.fna.fbcdn.net/v/t34.0-0/p480x480/19142165_10101451909179189_663213606_n.jpg?oh=7993b330affe65d6508bdf2f814bdeb7&oe=59443802'
       // return image.processLabelImage(url, userId, false, true)
-      console.log(fire.calculateDailyTracking(165, 60))
+      // console.log(fire.calculateDailyTracking(165, 60))
       // if (sugarCheckerFlag && messageText) {
       //   return fire.sugarChecker(messageText, userId)
       // }

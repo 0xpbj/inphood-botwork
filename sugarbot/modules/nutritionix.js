@@ -15,16 +15,20 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
+function cleanQuestion(messageText) {
+  return messageText.replace('sugar', '')
+}
+
 exports.getNutritionix = function(messageText, userId, timezone) {
-  console.log('In here homie')
   const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients'
   const request = require('request-promise')
+  const cleanText = cleanQuestion(messageText)
   let nutOptions = {
     uri: url,
     json: true,
     method: 'POST',
     body: {
-      "query": messageText,
+      "query": cleanText,
       //fix this to be based on user timezone
       "timezone": "US/Western"
     },
@@ -37,13 +41,15 @@ exports.getNutritionix = function(messageText, userId, timezone) {
   }
   return request(nutOptions)
   .then(result => {
+    // console.log('\n\n\n\n\n\n\n***************', result)
     let {foods} = result.body
     let sugar = 0
     let userText = ''
     let foodName = ''
     for (let food of foods) {
-      sugar += food.nf_sugars
-      userText += 'Sugar in ' + food.food_name + ': ' + food.nf_sugars + 'g\n'
+      let foodSugar = food.nf_sugars ? Math.round(food.nf_sugars) : 0
+      sugar += foodSugar
+      userText += 'Sugar in ' + food.food_name + ': ' + foodSugar + 'g\n'
       foodName += food.food_name + '\n'
     }
     if (userText !== '') {
@@ -51,6 +57,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
     }
     console.log('Amount of sugar: ', sugar)
     console.log(userText)
+    console.log(utils.getGifUrl(Math.round(sugar)))
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
     return tempRef.child('/temp/data/food').update({
       sugar,
@@ -61,13 +68,19 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         flag: false
       })
       .then(() => {
-        if (sugar) {
+        if (Math.round(sugar) > 2) {
           return [
             userText,
             'This is what ' + sugar +'g of sugar looks like.',
             new fbTemplate
-            .Image(utils.getGifUrl(sugar))
+            .Image(utils.getGifUrl(Math.round(sugar)))
             .get(),
+            fire.trackSugar()
+          ]
+        }
+        else if (sugar > 0) {
+          return [
+            userText,
             fire.trackSugar()
           ]
         }
@@ -85,17 +98,20 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         }
       })
     })
-    .catch((error) => {
-      console.log('Error here....', error)
-    })
   })
   .catch(error => {
-    console.log("Hmm....error", error)
-    return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/").remove()
+    // console.log("\n\n\nHmm....error")
+    // console.log(error)
+    console.log("We couldn\'t match any of your foods")
+    return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/question").remove()
     .then(function() {
       return [
-        'I got confused...',
-        utils.otherOptions(false)
+        "We couldn\'t match any of your foods",
+        // utils.otherOptions(false)
+        new fbTemplate.Text("Would you like to manually enter the sugar amount?")
+        .addQuickReply('Yes  ✅', 'manual sugar track')
+        .addQuickReply('No  ❌', 'other options')
+        .get()
       ]
     })
   })

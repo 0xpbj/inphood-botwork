@@ -125,13 +125,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
             'Your current daily sugar intake is ' + newVal + 'g',
             "Here's your daily intake",
             track,
-            new fbTemplate.Text('When should I remind you to track your next meal?')
-              .addQuickReply('1 hour', 'time1')
-              .addQuickReply('3 hours', 'time3')
-              .addQuickReply('5 hours', 'time5')
-              .addQuickReply('Tomorrow', 'timeTomorrow')
-              .addQuickReply("Don't ask", 'notime')
-              .get()
+            utils.trackAlertness()
           ]
         })
       })
