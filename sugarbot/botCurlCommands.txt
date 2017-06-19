@@ -1,8 +1,8 @@
-curl -X POST -H "Content-Type: application/json" -d '{ 
+curl -X POST -H "Content-Type: application/json" -d '{
   "get_started":{
     "payload":"GET STARTED"
   }
-}' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BAJaPLaqAsQe38FK2nToDDxB4PF7ddr28iHlgLEUWGd0JZCLOQxeJrSqED8o0DwE7U5zBrDblSGM2dha9k3STKk3iVOkfSBW2L5eeDe0ylyiCp1Vq50Ac4ZBdouD3p5rGtfVnjVh4YLtOsQDIgS7T1W10PCZBQZDZD" 
+}' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BAJaPLaqAsQe38FK2nToDDxB4PF7ddr28iHlgLEUWGd0JZCLOQxeJrSqED8o0DwE7U5zBrDblSGM2dha9k3STKk3iVOkfSBW2L5eeDe0ylyiCp1Vq50Ac4ZBdouD3p5rGtfVnjVh4YLtOsQDIgS7T1W10PCZBQZDZD"
 
 curl -X POST -H "Content-Type: application/json" -d '{
   "persistent_menu":[
@@ -36,3 +36,14 @@ curl -X DELETE -H "Content-Type: application/json" -d '{
     "persistent_menu"
   ]
 }' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BALxmOpJDbJijCMDKCZAjZArMwB6xD8RpZCgvoqi0sjpZA1N0pShcjyWYnqZCuE2AVxlYdWPwvIFLBZANzwWMW7RLSt9ZCQUEpWakZAzM6oxBSnpzsGHlgNGsKjf0idpWiTHBa20lMniI5fMjxYaQootyZA3tZBo2bq5AZDZD"
+
+
+// Sending a message:
+curl -X POST -H "Content-Type: application/json" -d '{
+  "recipient":{
+    "id":"1547345815338571"
+  },
+  "message":{
+    "text":"hello, world!"
+  }
+}' "https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD"
