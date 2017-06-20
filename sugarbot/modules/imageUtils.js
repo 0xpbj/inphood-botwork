@@ -62,6 +62,9 @@ exports.fdaProcess = function (userId, barcode) {
         return tempRef.child('food').set({
           sugar: sugar,
           foodName,
+          sugarPerServingStr,
+          cleanText: foodName,
+          ingredientsSugarsCaps
         })
         .then(() => {
           console.log('here i got')
@@ -133,7 +136,10 @@ exports.fdaProcess = function (userId, barcode) {
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
       return tempRef.child('food').set({
         sugar: sugarPerServing,
+        sugarPerServingStr,
         foodName,
+        cleanText: foodName,
+        ingredientsSugarsCaps
       })
       .then(() => {
         return tempRef.child('upc').remove()
@@ -170,7 +176,10 @@ exports.fdaProcess = function (userId, barcode) {
           console.log('Sugar?', sugar)
           return tempRef.child('food').set({
             sugar,
-            foodName: 'missing upc'
+            sugarPerServing: '',
+            foodName: 'missing upc',
+            cleanText: '',
+            ingredientsSugarsCaps: ''
           })
           .then(() => {
             return tempRef.child('upc').remove()

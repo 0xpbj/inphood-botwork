@@ -259,6 +259,48 @@ exports.trackAlertness = function() {
   .get();
 }
 
+exports.parseMyFavorites = function(favorites) {
+  let favArr = []
+  let myFavs = new fbTemplate.Text('Here are your most commonly added meals')
+  for (let object in favorites) {
+    let length = Object.keys(favorites[object].date).length
+    favArr.push({length, object})
+  }
+  console.log('Pre sorted', favArr)
+  console.log('\n\n\n\n\n')
+  favArr.sort(function(a, b) {
+    return (a.length < b.length)
+  })
+  console.log('Post sorted', favArr)
+  let i = 0
+  for (let it of favArr) {
+    if (i === 4)
+      break
+    i++
+    myFavs
+    .addQuickReply(i.toString() + ': ' + it.object.toLowerCase(), it.object)
+  }
+  myFavs.addQuickReply('None', 'back')
+  return myFavs.get()
+  // console.log('\n\n\n\n')
+  // console.log('Pre-Sorted', favArr)
+  // favArr.sort(function(a, b) {
+  //   console.log('\n\n\n\n', a, b)
+  //   const aDates = a.dates
+  //   const bDates = b.dates
+  //   return (Object.keys(aDates).length > Object.keys(bDates).length)
+  // })
+  // console.log('\n\n\n\n')
+  // console.log('Sorted', favArr)
+  // if (favArr.length > 2) {
+  //   let clear = favArr.length - 3
+  //   favArr.splice(0, clear)
+  // }
+  // console.log('\n\n\n\n')
+  // console.log('Spliced', favArr)
+  // return favArr
+}
+
 // exports.sugarTypes = function() {
 //   return [
 //     new fbTemplate.ChatAction('typing_on').get(),

@@ -19,7 +19,7 @@ function cleanQuestion(messageText) {
   return messageText.replace('sugar', '')
 }
 
-exports.getNutritionix = function(messageText, userId, timezone) {
+exports.getNutritionix = function(messageText, userId, timezone, myCheatDay) {
   const url = 'https://trackapi.nutritionix.com/v2/natural/nutrients'
   const request = require('request-promise')
   const cleanText = cleanQuestion(messageText)
@@ -43,25 +43,29 @@ exports.getNutritionix = function(messageText, userId, timezone) {
   .then(result => {
     // console.log('\n\n\n\n\n\n\n***************', result)
     let {foods} = result.body
+    console.log(foods)
     let sugar = 0
     let userText = ''
     let foodName = ''
     for (let food of foods) {
       let foodSugar = food.nf_sugars ? Math.round(food.nf_sugars) : 0
       sugar += foodSugar
-      userText += 'Sugar in ' + food.food_name + ': ' + foodSugar + 'g\n'
+      userText += 'Sugar in ' + food.serving_qty + ' ' + food.serving_unit + ' of ' + food.food_name + ': ' + foodSugar + 'g\n'
       foodName += food.food_name + '\n'
     }
     if (userText !== '') {
       userText += 'Total sugar in meal: ' + sugar + 'g'
     }
-    console.log('Amount of sugar: ', sugar)
+    // console.log('Amount of sugar: ', sugar)
     console.log(userText)
     console.log(utils.getGifUrl(Math.round(sugar)))
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
     return tempRef.child('/temp/data/food').update({
       sugar,
-      foodName
+      foodName,
+      cleanText,
+      sugarPerServingStr: userText,
+      ingredientsSugarsCaps: ''
     })
     .then(() => {
       return tempRef.child('/temp/data/question/').update({
@@ -75,13 +79,13 @@ exports.getNutritionix = function(messageText, userId, timezone) {
             new fbTemplate
             .Image(utils.getGifUrl(Math.round(sugar)))
             .get(),
-            fire.trackSugar()
+            fire.trackSugar(myCheatDay)
           ]
         }
         else if (sugar > 0) {
           return [
             userText,
-            fire.trackSugar()
+            fire.trackSugar(myCheatDay)
           ]
         }
         else {
