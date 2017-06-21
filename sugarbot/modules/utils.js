@@ -95,20 +95,20 @@ exports.otherOptions = function(option) {
       "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
         // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-        .addQuickReply('Sugar Journal ✏️', 'food journal')
+        .addQuickReply('Journal ✏️', 'food journal')
         // .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
-        .addQuickReply('My Preferences ⚙️', 'preferences')
+        .addQuickReply('Knowledge 📚', 'food knowledge')
+        .addQuickReply('Preferences ⚙️', 'preferences')
         .get()
     ]
   }
   else {
     return new fbTemplate.Text('What would you like to do next?')
       // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-      .addQuickReply('Sugar Journal ✏️', 'food journal')
+      .addQuickReply('Journal ✏️', 'food journal')
       // .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
-      .addQuickReply('My Preferences ⚙️', 'preferences')
+      .addQuickReply('Knowledge 📚', 'food knowledge')
+      .addQuickReply('Preferences ⚙️', 'preferences')
       .get();
   }
 }
@@ -257,6 +257,48 @@ exports.trackAlertness = function() {
   .addQuickReply('Not now  ❌', 'not now alertness')
 //   .addQuickReply('Don\'t ask again', 'do not ask alertness again')
   .get();
+}
+
+exports.parseMyFavorites = function(favorites) {
+  let favArr = []
+  let myFavs = new fbTemplate.Text('Here are your most commonly added meals')
+  for (let object in favorites) {
+    let length = Object.keys(favorites[object].date).length
+    favArr.push({length, object})
+  }
+  console.log('Pre sorted', favArr)
+  console.log('\n\n\n\n\n')
+  favArr.sort(function(a, b) {
+    return (a.length < b.length)
+  })
+  console.log('Post sorted', favArr)
+  let i = 0
+  for (let it of favArr) {
+    if (i === 4)
+      break
+    i++
+    myFavs
+    .addQuickReply(it.object.toLowerCase(), it.object)
+  }
+  myFavs.addQuickReply('Cancel', 'back')
+  return myFavs.get()
+  // console.log('\n\n\n\n')
+  // console.log('Pre-Sorted', favArr)
+  // favArr.sort(function(a, b) {
+  //   console.log('\n\n\n\n', a, b)
+  //   const aDates = a.dates
+  //   const bDates = b.dates
+  //   return (Object.keys(aDates).length > Object.keys(bDates).length)
+  // })
+  // console.log('\n\n\n\n')
+  // console.log('Sorted', favArr)
+  // if (favArr.length > 2) {
+  //   let clear = favArr.length - 3
+  //   favArr.splice(0, clear)
+  // }
+  // console.log('\n\n\n\n')
+  // console.log('Spliced', favArr)
+  // return favArr
 }
 
 // exports.sugarTypes = function() {

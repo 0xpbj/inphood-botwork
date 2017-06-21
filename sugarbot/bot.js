@@ -22,7 +22,7 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel']
+let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear']
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
@@ -58,6 +58,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const goalSugar = snapshot.child('/temp/data/preferences/goalSugar').val()
         const weight = snapshot.child('/temp/data/preferences/weight').val()
         const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
+        const cheatDay = snapshot.child('/temp/data/cheatDay/flag').val()
+        const myCheatDay = snapshot.child('/preferences/currentCheatDay').val()
+        const favFlag = snapshot.child('/temp/data/favorites/flag').val()
+        const favorites = snapshot.child('/myfoods/').val()
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
           return fire.sugarChecker(messageText, userId)
@@ -74,6 +78,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (upcFlag && messageText) {
           return image.fdaProcess(userId, messageText)
         }
+        else if (favFlag && messageText) {
+          // return 'adding your favorite: ' + request.text
+          return fire.findMyFavorites(request.text, userId)
+        }
         else if (manual && messageText) {
           return tempRef.once("value")
           .then(tsnapshot => {
@@ -88,7 +96,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               return tempRef.child('/temp/data/manual').remove()
               .then(() => {
                 // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                let track = fire.calculateDailyTracking(weight, newVal, userId)
+                let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
                 return [
                   'Added ' + inputSugar + 'g to your journal',
                   'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
@@ -122,7 +130,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                   return tempRef.child('/temp/data/').remove()
                   .then(() => {
                     // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                    let track = fire.calculateDailyTracking(weight, newVal, userId)
+                    let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
                     return [
                       'Added ' + inputSugar + 'g to your journal',
                       'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
@@ -200,6 +208,27 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             })
           })
         }
+        else if (cheatDay && messageText) {
+          return tempRef.child('/preferences/' + date).update({
+            cheatDay: messageText
+          })
+          .then(() => {
+            return tempRef.child('/preferences/').update({
+              currentCheatDay: messageText
+            })
+            .then(() => {
+              return tempRef.child('/temp/data/cheatDay').update({
+                flag: false
+              })
+              .then(() => {
+                return [
+                  'Got it! Your cheat day updated: ' + messageText,
+                  utils.otherOptions(false)
+                ]
+              })
+            })
+          })
+        }
         else if (messageText) {
           switch (messageText) {
             case 'debug': {
@@ -231,6 +260,14 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case 'my cheat day': {
+              return tempRef.child('/temp/data/cheatDay').update({
+                flag: true
+              })
+              .then(() => {
+                return "Please send which day you'd like to be your cheatday: (Ex: Saturday)"
+              })
+            }
             case 'manual sugar track with upc': {
               return tempRef.child('/temp/data/missingUPC').update({
                 flag: true
@@ -249,7 +286,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'custom sugar for food': {
               return new fbTemplate.Text('What would you like to do next?')
-              .addQuickReply('Different Serving Size', 'manual sugar track')
+              .addQuickReply('Different Serving', 'manual sugar track')
               .addQuickReply('Incorrect Sugar', 'incorrect sugar information')
               .get()
             }
@@ -264,14 +301,33 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case 'favorites':
+            case 'my favorites': {
+              return tempRef.child('/temp/data/favorites').update({
+                flag: true
+              })
+              .then(() => {
+                return utils.parseMyFavorites(favorites)
+              })
+            }
             case 'journal':
             case 'sugar journal':
             case 'food journal': {
-              return new fbTemplate.Text('What would you like to do next?')
-              .addQuickReply('UPC of Food 🏷', 'analyze upc')
-              .addQuickReply('Describe Food ✏️', 'food question')
-              .addQuickReply('Photo of Food 🥗', 'send food picture')
-              .get()
+              if (favorites) {
+                return new fbTemplate.Text('What would you like to do next?')
+                .addQuickReply('Favorites 😍', 'my favorites')
+                .addQuickReply('UPC 🏷', 'analyze upc')
+                .addQuickReply('Description ✏️', 'food question')
+                .addQuickReply('Photo 🥗', 'send food picture')
+                .get()
+              }
+              else {
+                return new fbTemplate.Text('What would you like to do next?')
+                .addQuickReply('UPC 🏷', 'analyze upc')
+                .addQuickReply('Description ✏️', 'food question')
+                .addQuickReply('Photo 🥗', 'send food picture')
+                .get()
+              }
             }
             case 'food question':
             case 'question': {
@@ -337,9 +393,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
-                .addQuickReply('Add sugar goal', 'goalsugar')
-                .addQuickReply('Add current weight', 'weight')
-                .addQuickReply('Add goal weight', 'goalWeight')
+                .addQuickReply('Sugar Goal', 'goalsugar')
+                .addQuickReply('Current Weight', 'weight')
+                .addQuickReply('Weight Goal', 'goalWeight')
                 .get()
             }
             case 'weight': {
@@ -375,9 +431,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'sugar knowledge':
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
-                .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-                .addQuickReply('Sugar Free Recipe 📅', 'recipe')
-                .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
+                .addQuickReply('Facts 🎲', 'Random Sugar Facts')
+                .addQuickReply('Recipes 📅', 'recipe')
+                .addQuickReply('Processed? 🍭', 'Processed Sugar?')
                 .get()
             }
             case 'time1': {
@@ -416,7 +472,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
-            case 'timeTomorrow': {
+            case 'timetomorrow': {
               const time = timestamp + (24*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
                 timeTomorrow: time
@@ -442,7 +498,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 feeling: 'very alert'
               })
               .then(() => {
-                return utils.trackMood()
+                // return utils.trackMood()
+                return utils.sendReminder()
               })
             }
             case 'typical alertness': {
@@ -450,7 +507,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 feeling: 'typical alertness'
               })
               .then(() => {
-                return utils.trackMood()
+                // return utils.trackMood()
+                return utils.sendReminder()
               })
             }
             case 'drowsy': {
@@ -458,7 +516,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 feeling: 'drowsy'
               })
               .then(() => {
-                return utils.trackMood()
+                // return utils.trackMood()
+                return utils.sendReminder()
               })
             }
             case 'not now alertness': {
@@ -466,7 +525,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 feeling: 'not now'
               })
               .then(() => {
-                return utils.trackMood()
+                // return utils.trackMood()
+                return utils.sendReminder()
               })
             }
             case 'positive mood': {

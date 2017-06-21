@@ -17,11 +17,72 @@ if (firebase.apps.length === 0) {
 }
 
 exports.trackSugar = function() {
+  let cheatDay = new Date(Date.now()).getDay()
+  if (cheatDay == 0) {
+    return 'Today is your cheat day! Enjoy responsibly 😇'
+  }
   return new fbTemplate.Text('Would you like to add it to your journal?')
   .addQuickReply('Yes  ✅', 'add sugar')
-  .addQuickReply('Different Amount 🛠', 'custom sugar for food')
+  .addQuickReply('Custom 🛠', 'custom sugar for food')
   .addQuickReply('No  ❌', 'remove temp food data')
-  .get();
+  .get()
+}
+
+exports.findMyFavorites = function(favoriteMeal, userId) {
+  let objRef = firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + favoriteMeal + '/')
+  return objRef.once("value")
+  .then(function(snapshot) {
+    let sugarPerServing = snapshot.child('sugar').val()
+    let sugarPerServingStr = snapshot.child('sugarPerServingStr').val()
+    let ingredientsSugarsCaps = snapshot.child('ingredientsSugarsCaps').val()
+    console.log('results', sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
+    return firebase.database().ref('/global/sugarinfoai/' + userId + '/temp/data/favorites').update({
+      flag: false
+    })
+    .then(() => {
+      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+      let sugar = parseInt(sugarPerServing)
+      if (!ingredientsSugarsCaps)
+        ingredientsSugarsCaps = ''
+      return tempRef.child('food').set({
+        sugar: sugarPerServing,
+        foodName: favoriteMeal,
+        sugarPerServingStr,
+        cleanText: favoriteMeal,
+        ingredientsSugarsCaps
+      })
+      .then(() => {
+        console.log('got here bub')
+        if (ingredientsSugarsCaps !== '') {
+          console.log('in if block')
+          // return 'in deebo block'
+          return [
+            sugarPerServingStr,
+            'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
+            'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+            new fbTemplate
+            .Image(utils.getGifUrl(sugarPerServing))
+            .get(),
+            exports.trackSugar()
+          ]
+        }
+        else {
+          console.log('in else block')
+          return [
+            sugarPerServingStr,
+            'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+            new fbTemplate
+            .Image(utils.getGifUrl(sugarPerServing))
+            .get(),
+            exports.trackSugar()
+          ]
+        }
+      })
+    })
+  })
+  .catch(error => {
+    console.log('Errors', error)
+  })
 }
 
 exports.trackUserProfile = function(userId) {
@@ -99,45 +160,58 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
   // console.log(dateValue.toTimeString()); // logs 14:39:07 GMT-0600 (PDT)
   var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
   return tempRef.once("value")
-  .then(function(tsnapshot) {
-    var sugar = tsnapshot.child('/temp/data/food/sugar').val()
-    var foodName = tsnapshot.child('/temp/data/food/foodName').val()
+  .then(function(snapshot) {
+    var sugar = snapshot.child('/temp/data/food/sugar').val()
+    var foodName = snapshot.child('/temp/data/food/foodName').val()
+    var cleanText = snapshot.child('/temp/data/food/cleanText').val()
+    var sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
+    var ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
     userRef.push({
       foodName,
       userId,
       timestamp: fulldate
     })
-    var weight = tsnapshot.child('/preferences/currentWeight').val()
-    var goalWeight = tsnapshot.child('/preferences/currentGoalWeight').val()
-    var goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
-    var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
-    return sugarRef.once("value")
-    .then(function(snapshot) {
-      var val = snapshot.child('sugar').val()
-      if (!val)
-        val = 0
-      if (!goalSugar)
-        goalSugar = 40
-      var newVal = parseInt(val) + parseInt(sugar)
-      return sugarRef.update({ sugar: newVal })
-      .then(function() {
-        return tempRef.child('/temp/data/food').remove()
+    var weight = snapshot.child('/preferences/currentWeight').val()
+    var goalWeight = snapshot.child('/preferences/currentGoalWeight').val()
+    var goalSugar = snapshot.child('/preferences/currentGoalSugar').val()
+    var val = snapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
+    if (!val)
+      val = 0
+    if (!goalSugar)
+      goalSugar = 40
+    var newVal = parseInt(val) + parseInt(sugar)
+    // const cleanName = foodName.substr(0, foodName.indexOf(' ')).toLowerCase()
+    // console.log(cleanName)
+    // var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
+    return firebase.database().ref('/global/sugarinfoai/' + userId + '/sugarIntake/' + date + '/dailyTotal/').update({ sugar: newVal })
+    .then(() => {
+      return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
+        sugar,
+        sugarPerServingStr,
+        ingredientsSugarsCaps
+      })
+      .then(() => {
+        return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({ 
+          timestamp: Date.now(),
+        })
         .then(() => {
-          let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
-          console.log('*****************', track)
-          return [
-            'Added ' + sugar + 'g to your journal',
-            'Your current daily sugar intake is ' + newVal + ' of ' + goalSugar + 'g',
-            "Here's your daily intake",
-            track,
-            utils.trackAlertness()
-          ]
+          return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data/food').remove()
+          .then(() => {
+            let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
+            return [
+              'Added ' + sugar + 'g to your journal',
+              'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
+              "Here's your daily intake",
+              track,
+              utils.trackAlertness()
+            ]
+          })
         })
       })
-      .catch(function(error) {
-        console.log('Synchronization failed', error);
-      });
+    })
+    .catch(function(error) {
+      console.log('Firebase Error ', error);
     });
   })
   .catch((error) => {
