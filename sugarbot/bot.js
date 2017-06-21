@@ -23,7 +23,7 @@ if (firebase.apps.length === 0) {
 }
 
 let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel']
-  
+
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
   if (request.type === 'facebook') {
@@ -77,7 +77,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (manual && messageText) {
           return tempRef.once("value")
           .then(tsnapshot => {
-            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val() 
+            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
             const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
             const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
@@ -104,7 +104,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (missingUPC && messageText) {
           return tempRef.once("value")
           .then(tsnapshot => {
-            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val() 
+            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
             const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
             const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
@@ -202,6 +202,15 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if (messageText) {
           switch (messageText) {
+            case 'debug': {
+              if (userId === '1547345815338571') {  // AC
+                return ["timestamp: " + timestamp,
+                       "dateValue: " + dateValue,
+                       "date: " + date,
+                       "Date.now(): " + Date.now()]
+                      //  "Date.now date: " + Date(Date.now()).toDateString()]
+              }
+            }
             case 'other options': {
               return utils.otherOptions(false)
             }
