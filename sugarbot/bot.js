@@ -233,10 +233,23 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           switch (messageText) {
             case 'debug': {
               if (userId === '1547345815338571') {  // AC
-                return ["timestamp: " + timestamp,
-                       "dateValue: " + dateValue,
-                       "date: " + date,
-                       "Date.now(): " + Date.now()]
+                console.log('REQUEST -----------------------------------------')
+                console.log(request)
+
+                const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
+                const localDateValue = new Date(localTimestamp)
+                // const localeTimeString = dateValue.toLocaleTimeString('en-US', {timeZone: timezone})
+                const localeTimeString = localDateValue.toLocaleTimeString()
+                return ["dateValue: " + dateValue,
+                        "localDateValue: " + localDateValue,
+                        "localeTimeString: " + localeTimeString]
+
+                // return ["timestamp: " + timestamp,
+                //        "dateValue: " + dateValue,
+                //        "date: " + date,
+                //        "Date.now(): " + Date.now(),
+                //        "request.originalRequest: ",
+                //        origReqKeys]
                       //  "Date.now date: " + Date(Date.now()).toDateString()]
               }
             }
