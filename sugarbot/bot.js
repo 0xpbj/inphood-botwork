@@ -29,9 +29,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
   if (request.type === 'facebook') {
     console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@', request)
     // console.log(request.originalRequest)
-    const {timestamp} = request.originalRequest
-    var dateValue = new Date(timestamp)
-    var date = dateValue.toDateString()
     // console.log('DATES', timestamp)
     // console.log(dateValue)
     // console.log(date)
@@ -54,7 +51,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const missingUPC = snapshot.child('/temp/data/missingUPC/flag').val()
         const manual = snapshot.child('/temp/data/manual/flag').val()
         const cvFlag = snapshot.child('/temp/data/cv/flag').val()
-        const timezone = snapshot.child('/profile/timezone').val()
         const goalSugar = snapshot.child('/temp/data/preferences/goalSugar').val()
         const weight = snapshot.child('/temp/data/preferences/weight').val()
         const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
@@ -62,6 +58,21 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         const myCheatDay = snapshot.child('/preferences/currentCheatDay').val()
         const favFlag = snapshot.child('/temp/data/favorites/flag').val()
         const favorites = snapshot.child('/myfoods/').val()
+
+        let timezone = snapshot.child('/profile/timezone').val()
+        let first_name = snapshot.child('/profile/first_name').val()
+        // should only happens once...unless user updates profile
+        if (!first_name) {
+          fire.trackUserProfile(userId)
+        }
+        // defaults to PST
+        if (!timezone) {
+          timezone = -8
+        }
+        const {timestamp} = request.originalRequest
+        const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
+        var dateValue = new Date(localTimestamp)
+        var date = dateValue.toDateString()
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
         if (sugarCheckerFlag && messageText) {
           return fire.sugarChecker(messageText, userId)
@@ -72,7 +83,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if ((upcFlag || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
-          fire.trackUserProfile(userId)
           return image.processLabelImage(url, userId, upcFlag, cvFlag)
         }
         else if (upcFlag && messageText) {
@@ -85,6 +95,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (manual && messageText) {
           return tempRef.once("value")
           .then(tsnapshot => {
+            const cleanText = snapshot.child('/temp/data/food/cleanText').val()
+            const sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
+            const ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
             const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
             const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
@@ -93,18 +106,30 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               sugar: newVal
             })
             .then(() => {
-              return tempRef.child('/temp/data/manual').remove()
+              return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
+                sugar: inputSugar,
+                sugarPerServingStr,
+                ingredientsSugarsCaps
+              })
               .then(() => {
-                // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
-                return [
-                  'Added ' + inputSugar + 'g to your journal',
-                  'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
-                  "Here's your daily intake",
-                  track,
-                  // utils.sendReminder()
-                  utils.trackAlertness()
-                ]
+                return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({ 
+                  timestamp: Date.now(),
+                })
+                .then(() => {
+                  return tempRef.child('/temp/data/manual').remove()
+                  .then(() => {
+                    // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
+                    let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
+                    return [
+                      'Added ' + inputSugar + 'g to your journal',
+                      'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
+                      "Here's your daily intake",
+                      track,
+                      // utils.sendReminder()
+                      utils.trackAlertness()
+                    ]
+                  })
+                })
               })
             })
           })
@@ -232,18 +257,19 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (messageText) {
           switch (messageText) {
             case 'debug': {
-              if (userId === '1547345815338571') {  // AC
+              if (userId === '1547345815338571' || userId === '1322516797796635') {  // AC or PBJ
                 console.log('REQUEST -----------------------------------------')
                 console.log(request)
-
                 const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
                 const localDateValue = new Date(localTimestamp)
                 // const localeTimeString = dateValue.toLocaleTimeString('en-US', {timeZone: timezone})
                 const localeTimeString = localDateValue.toLocaleTimeString()
-                return ["dateValue: " + dateValue,
-                        "localDateValue: " + localDateValue,
-                        "localeTimeString: " + localeTimeString]
-
+                return [
+                  "dateValue: " + dateValue,
+                  "localDateValue: " + localDateValue,
+                  "localeTimeString: " + localeTimeString,
+                  "date: " + date
+                ]
                 // return ["timestamp: " + timestamp,
                 //        "dateValue: " + dateValue,
                 //        "date: " + date,
