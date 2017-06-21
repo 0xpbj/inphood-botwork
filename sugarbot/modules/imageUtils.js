@@ -324,9 +324,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
     return [
       'Looks like you confused me...can you help me out?',
       new fbTemplate.Text("Ok, here are your options.")
-      .addQuickReply('Sugar Journal ✏️', 'food journal')
-      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
-      .addQuickReply('My Preferences ⚙️', 'preferences')
+      .addQuickReply('Journal ✏️', 'food journal')
+      .addQuickReply('Knowledge 📚', 'food knowledge')
+      .addQuickReply('Preferences ⚙️', 'preferences')
       .get()
     ]
   })

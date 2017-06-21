@@ -23,7 +23,7 @@ exports.trackSugar = function() {
   }
   return new fbTemplate.Text('Would you like to add it to your journal?')
   .addQuickReply('Yes  ✅', 'add sugar')
-  .addQuickReply('Different Amount 🛠', 'custom sugar for food')
+  .addQuickReply('Custom 🛠', 'custom sugar for food')
   .addQuickReply('No  ❌', 'remove temp food data')
   .get()
 }

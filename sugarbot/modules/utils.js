@@ -95,20 +95,20 @@ exports.otherOptions = function(option) {
       "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
         // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-        .addQuickReply('Sugar Journal ✏️', 'food journal')
+        .addQuickReply('Journal ✏️', 'food journal')
         // .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
-        .addQuickReply('My Preferences ⚙️', 'preferences')
+        .addQuickReply('Knowledge 📚', 'food knowledge')
+        .addQuickReply('Preferences ⚙️', 'preferences')
         .get()
     ]
   }
   else {
     return new fbTemplate.Text('What would you like to do next?')
       // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-      .addQuickReply('Sugar Journal ✏️', 'food journal')
+      .addQuickReply('Journal ✏️', 'food journal')
       // .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Sugar Knowledge 📚', 'food knowledge')
-      .addQuickReply('My Preferences ⚙️', 'preferences')
+      .addQuickReply('Knowledge 📚', 'food knowledge')
+      .addQuickReply('Preferences ⚙️', 'preferences')
       .get();
   }
 }
@@ -278,9 +278,9 @@ exports.parseMyFavorites = function(favorites) {
       break
     i++
     myFavs
-    .addQuickReply(i.toString() + ': ' + it.object.toLowerCase(), it.object)
+    .addQuickReply(it.object.toLowerCase(), it.object)
   }
-  myFavs.addQuickReply('None', 'back')
+  myFavs.addQuickReply('Cancel', 'back')
   return myFavs.get()
   // console.log('\n\n\n\n')
   // console.log('Pre-Sorted', favArr)

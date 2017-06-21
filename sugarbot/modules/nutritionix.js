@@ -95,7 +95,7 @@ exports.getNutritionix = function(messageText, userId, timezone, myCheatDay) {
               .addQuickReply('1 hour', 'time1')
               .addQuickReply('3 hours', 'time3')
               .addQuickReply('5 hours', 'time5')
-              .addQuickReply('Tomorrow', 'timeTomorrow')
+              .addQuickReply('24 hours', 'timeTomorrow')
               .addQuickReply("Don't ask", 'notime')
               .get()
           ]

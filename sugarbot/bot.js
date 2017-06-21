@@ -277,7 +277,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'custom sugar for food': {
               return new fbTemplate.Text('What would you like to do next?')
-              .addQuickReply('Different Serving Size', 'manual sugar track')
+              .addQuickReply('Different Serving', 'manual sugar track')
               .addQuickReply('Incorrect Sugar', 'incorrect sugar information')
               .get()
             }
@@ -306,17 +306,17 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'food journal': {
               if (favorites) {
                 return new fbTemplate.Text('What would you like to do next?')
-                .addQuickReply('My Favorites 😍', 'my favorites')
-                .addQuickReply('UPC of Food 🏷', 'analyze upc')
-                .addQuickReply('Describe Food ✏️', 'food question')
-                .addQuickReply('Photo of Food 🥗', 'send food picture')
+                .addQuickReply('Favorites 😍', 'my favorites')
+                .addQuickReply('UPC 🏷', 'analyze upc')
+                .addQuickReply('Description ✏️', 'food question')
+                .addQuickReply('Photo 🥗', 'send food picture')
                 .get() 
               }
               else {
                 return new fbTemplate.Text('What would you like to do next?')
-                .addQuickReply('UPC of Food 🏷', 'analyze upc')
-                .addQuickReply('Describe Food ✏️', 'food question')
-                .addQuickReply('Photo of Food 🥗', 'send food picture')
+                .addQuickReply('UPC 🏷', 'analyze upc')
+                .addQuickReply('Description ✏️', 'food question')
+                .addQuickReply('Photo 🥗', 'send food picture')
                 .get() 
               }
             }
@@ -384,9 +384,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
-                .addQuickReply('Add sugar goal', 'goalsugar')
-                .addQuickReply('Add current weight', 'weight')
-                .addQuickReply('Add goal weight', 'goalWeight')
+                .addQuickReply('Sugar Goal', 'goalsugar')
+                .addQuickReply('Current Weight', 'weight')
+                .addQuickReply('Weight Goal', 'goalWeight')
                 .get()
             }
             case 'weight': {
@@ -422,9 +422,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'sugar knowledge':
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
-                .addQuickReply('Random Sugar Fact 🎲', 'Random Sugar Facts')
-                .addQuickReply('Sugar Free Recipe 📅', 'recipe')
-                .addQuickReply('Processed Sugar? 🍭', 'Processed Sugar?')
+                .addQuickReply('Facts 🎲', 'Random Sugar Facts')
+                .addQuickReply('Recipes 📅', 'recipe')
+                .addQuickReply('Processed? 🍭', 'Processed Sugar?')
                 .get()
             }
             case 'time1': {
@@ -463,7 +463,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
-            case 'timeTomorrow': {
+            case 'timetomorrow': {
               const time = timestamp + (24*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
                 timeTomorrow: time
