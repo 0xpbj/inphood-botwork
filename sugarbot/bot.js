@@ -7,7 +7,9 @@ const fire = require('./modules/firebaseUtils.js')
 const image = require('./modules/imageUtils.js')
 const nutrition = require ('./modules/nutritionix.js')
 const fbTemplate = botBuilder.fbTemplate
+
 const report = require('./modules/reportUtils.js')
+const requestPromise = require('request-promise')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -284,31 +286,55 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                       //  "Date.now date: " + Date(Date.now()).toDateString()]
               }
             }
-            case 'debug_webview': {
+            case 'debug_report': {
               if (userId === '1547345815338571' || userId === '1322516797796635') {  // AC or PBJ
 
-                console.log('MY BUTTON CODE ISN\'T WORKING')
+                console.log('TESTING WEBVIEW CODE BELOW')
+                console.log('date: ' + date)
+                console.log('userId: ' + userId)
+                //
+                // 1. Generate today's report of what was eaten.
+                // 2. Send a webview button to the user allowing them to see
+                //    what was eaten.
 
-                return new fbTemplate.Button('Title')
-                  .addButton('Button 1', '1')
-                  .addButton('Button 2', '2')
-                  .get()
+                return report.writeReportToS3(date, userId, snapshot)
+                .then(result => {
+                  return "File written: " + result.dataUrl
+                })
 
-                // return new fbTemplate
-                //   .Button('Webview Test', 'https://www.inphood.com/reports/report.html')
-                //   .get()
-
-                // return {
-                //   "buttons" : [
-                //     {
-                //       "type" : "web_url",
-                //       "url" : "https://www.inphood.com/reports/report.html",
-                //       "title" : "Webview Test",
-                //       "webview_height_ratio" : "tall",
-                //       "messenger_extensions" : true
+                // const webviewButtonOptions = {
+                //   uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
+                //   json: true,
+                //   method: 'POST',
+                //   body: {
+                //     'recipient':{
+                //       'id':'1547345815338571'
+                //     },
+                //     'message':{
+                //       'attachment':{
+                //         'type':'template',
+                //          'payload':{
+                //             'template_type':'button',
+                //             'text':'sugarinfoAI Reports',
+                //             'buttons' : [
+                //               {
+                //                 'type' : 'web_url',
+                //                 'url' : 'https://www.inphood.com/reports/report.html',
+                //                 'title' : 'Today\'s Food',
+                //                 'webview_height_ratio' : 'tall',
+                //                 'messenger_extensions' : true
+                //               }
+                //             ]
+                //          }
+                //       }
                 //     }
-                //   ]
+                //   },
+                //   resolveWithFullResponse: true,
+                //   headers: {
+                //     'Content-Type': "application/json"
+                //   }
                 // }
+                // return requestPromise(webviewButtonOptions)
               }
             }
             case 'other options': {
