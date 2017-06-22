@@ -4,6 +4,17 @@ const sugarUtils = require('./sugarUtils.js')
 const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 
+exports.boundsChecker = function(input) {
+  let num = input
+  if (typeof(input) === "string") {
+    num = parseInt(input)
+  }
+  if (num > -1 && num < 150) {
+    return num
+  }
+  return -1
+}
+
 exports.getBarcodeAsync = function(param){
   return new Promise((resolve, reject) => {
     Quagga.decodeSingle(param, (data) => {
