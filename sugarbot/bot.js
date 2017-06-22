@@ -93,13 +93,16 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           return fire.findMyFavorites(request.text, userId)
         }
         else if (manual && messageText) {
+          const inputSugar = utils.boundsChecker(messageText)
+          if (inputSugar === -1) {
+            return 'Invalid input. Please enter a valid number!'
+          }
           return tempRef.once("value")
           .then(tsnapshot => {
             const cleanText = snapshot.child('/temp/data/food/cleanText').val()
             const sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
             const ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
             const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
-            const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
             const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
@@ -135,10 +138,13 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           })
         }
         else if (missingUPC && messageText) {
+          const inputSugar = utils.boundsChecker(messageText)
+          if (inputSugar === -1) {
+            return 'Invalid input. Please enter a valid number!'
+          }
           return tempRef.once("value")
           .then(tsnapshot => {
             const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
-            const inputSugar = parseInt(messageText)
             const newVal = sugar + inputSugar
             const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
@@ -312,7 +318,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
+                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20g)"
               })
             }
             case 'manual sugar track': {
@@ -320,7 +326,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 flag: true
               })
               .then(() => {
-                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
+                return "Please send me the amount of sugar in grams you'd like to add: (Ex: 20g)"
               })
             }
             case 'custom sugar for food': {
@@ -336,7 +342,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               .then(() => {
                 return [
                   "I apologize about the discrepancy. I will try to get the correct information for you next time! 🤕",
-                  "Please send me the amount of sugar in grams you'd like to add: (Ex: 20)"
+                  "Please send me the amount of sugar in grams you'd like to add: (Ex: 20g)"
                 ]
               })
             }
