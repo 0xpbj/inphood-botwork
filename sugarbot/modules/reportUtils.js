@@ -25,8 +25,8 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
   .then(info => {
     console.log('AFTER s3.upload(...).promise:')
     console.log('info: ' + info)
-    const dataUrl = 'https://d1q0ddz2y0icfw.cloudfront.net/reports/' + userId + '/' + date + '.html'
-    // const dataUrl = 'https://www.inphood.com/reports/' + userId + '/' + date + '.html'
+    // const dataUrl = 'https://d1q0ddz2y0icfw.cloudfront.net/reports/' + userId + '/' + date + '.html'
+    const dataUrl = 'https://www.inphood.com/reports/' + userId + '/' + date + '.html'
     return dataUrl
   })
   .catch(error => console.log(error));
