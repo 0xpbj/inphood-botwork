@@ -1,4 +1,16 @@
 curl -X POST -H "Content-Type: application/json" -d '{
+  "greeting":[
+    {
+      "locale":"default",
+      "text":"Your own virtual sugar expert!"
+    }, {
+      "locale":"en_US",
+      "text":"Your own virtual sugar expert!"
+    }
+  ] 
+}' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BAJaPLaqAsQe38FK2nToDDxB4PF7ddr28iHlgLEUWGd0JZCLOQxeJrSqED8o0DwE7U5zBrDblSGM2dha9k3STKk3iVOkfSBW2L5eeDe0ylyiCp1Vq50Ac4ZBdouD3p5rGtfVnjVh4YLtOsQDIgS7T1W10PCZBQZDZD"
+
+curl -X POST -H "Content-Type: application/json" -d '{
   "get_started":{
     "payload":"GET STARTED"
   }
@@ -11,19 +23,31 @@ curl -X POST -H "Content-Type: application/json" -d '{
       "composer_input_disabled":false,
       "call_to_actions":[
         {
-          "type":"postback",
-          "title":"Analyze Nutrition 🔬",
-          "payload":"send nutrition label"
+          "title":"My Options",
+          "type":"nested",
+          "call_to_actions":[
+            {
+              "title":"Journal ✏️",
+              "type":"postback",
+              "payload":"journal"
+            },
+            {
+              "title":"Knowledge 📚",
+              "type":"postback",
+              "payload":"knowledge"
+            },
+            {
+              "title":"Preferences ⚙️",
+              "type":"postback",
+              "payload":"preferences"
+            }
+          ]
         },
         {
-          "type":"postback",
-          "title":"Random Sugar Facts 🎲",
-          "payload":"random sugar facts"
-        },
-        {
-          "type":"postback",
-          "title":"Not Sugar? 🍭",
-          "payload":"Not Sugar?"
+          "type":"web_url",
+          "title":"My Report",
+          "url":"https://www.inphood.com/reports/1322516797796635/Thu_Jun_22_2017.html",
+          "webview_height_ratio":"full"
         }
       ]
     }

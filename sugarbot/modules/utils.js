@@ -103,7 +103,7 @@ exports.getUsdaReport = function(ndbno) {
 exports.otherOptions = function(option) {
   if (option === true) {
     return [
-      "Welcome to SugarInfo Bot! I'm here to help you understand sugar 🤓",
+      "Welcome to sugarinfoAI! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("What would you like to do?")
         // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
         .addQuickReply('Journal ✏️', 'food journal')
