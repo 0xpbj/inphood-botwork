@@ -106,13 +106,13 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               sugar: newVal
             })
             .then(() => {
-              return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
+              return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({
                 sugar: inputSugar,
                 sugarPerServingStr,
                 ingredientsSugarsCaps
               })
               .then(() => {
-                return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({ 
+                return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({
                   timestamp: Date.now(),
                 })
                 .then(() => {
@@ -277,6 +277,33 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 //        "request.originalRequest: ",
                 //        origReqKeys]
                       //  "Date.now date: " + Date(Date.now()).toDateString()]
+              }
+            }
+            case 'debug_webview': {
+              if (userId === '1547345815338571' || userId === '1322516797796635') {  // AC or PBJ
+
+                console.log('MY BUTTON CODE ISN\'T WORKING')
+
+                return new fbTemplate.Button('Title')
+                  .addButton('Button 1', '1')
+                  .addButton('Button 2', '2')
+                  .get()
+
+                // return new fbTemplate
+                //   .Button('Webview Test', 'https://www.inphood.com/reports/report.html')
+                //   .get()
+
+                // return {
+                //   "buttons" : [
+                //     {
+                //       "type" : "web_url",
+                //       "url" : "https://www.inphood.com/reports/report.html",
+                //       "title" : "Webview Test",
+                //       "webview_height_ratio" : "tall",
+                //       "messenger_extensions" : true
+                //     }
+                //   ]
+                // }
               }
             }
             case 'other options': {
