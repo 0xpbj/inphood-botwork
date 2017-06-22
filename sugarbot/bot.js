@@ -3,7 +3,6 @@ const botBuilder = require('claudia-bot-builder')
 const ocrUtils = require('./modules/ocrUtils.js')
 const sugarUtils = require('./modules/sugarUtils.js')
 const utils = require('./modules/utils.js')
-const wolf = require('./modules/wolframUtils.js')
 const fire = require('./modules/firebaseUtils.js')
 const image = require('./modules/imageUtils.js')
 const nutrition = require ('./modules/nutritionix.js')
@@ -80,7 +79,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if (questionFlag && messageText) {
           return nutrition.getNutritionix(messageText, userId, timezone)
-          // return wolf.getWolfram(messageText, userId)
         }
         else if ((upcFlag || cvFlag) && messageAttachments) {
           const {url} = messageAttachments[0].payload
@@ -438,9 +436,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 return utils.otherOptions(false)
               })
             }
-            case 'more details': {
-              return wolf.detailedWolfram(userId)
-            }
             case 'preferences': {
               return new fbTemplate.Text('What would you like to do?')
                 .addQuickReply('Sugar Goal', 'goalsugar')
@@ -612,7 +607,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             default: {
-              // return wolf.getWolfram(messageText, userId)
               console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
               console.log('GOING INTO NUTRITIONIX')
               return nutrition.getNutritionix(messageText, userId, timezone)
