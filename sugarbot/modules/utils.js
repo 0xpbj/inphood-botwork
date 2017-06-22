@@ -9,7 +9,7 @@ exports.boundsChecker = function(input) {
   if (typeof(input) === "string") {
     num = parseInt(input)
   }
-  if (num > -1 && num < 501) {
+  if (num > -1 && num < 150) {
     return num
   }
   return -1

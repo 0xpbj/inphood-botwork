@@ -234,5 +234,5 @@ const foodNames = [
 ]
 
 exports.getNatural = function(name) {
-  return foodNames.indexOf(name)
+  return foodNames.indexOf(name) || foodNames.indexOf(name + 's')
 }

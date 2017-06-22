@@ -8,6 +8,7 @@ const fire = require('./modules/firebaseUtils.js')
 const image = require('./modules/imageUtils.js')
 const nutrition = require ('./modules/nutritionix.js')
 const fbTemplate = botBuilder.fbTemplate
+const report = require('./modules/reportUtils.js')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -287,6 +288,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'other options': {
               return utils.otherOptions(false)
+            }
+            case 'report':
+            case 'my report': {
+              return report.writeReportToS3(date, userId, snapshot)
             }
             case 'send upc label':
             case 'upc label':
