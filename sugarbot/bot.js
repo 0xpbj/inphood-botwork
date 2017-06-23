@@ -354,7 +354,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                   new fbTemplate
                   .Image('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/upc.jpg')
                   .get(),
-                  "Ok. You can send me a photo of the UPC 📷 or type the number manually ⌨️"
+                  "Please send me a photo of the UPC 📷 or type the number manually ⌨️"
                 ]
               })
             }

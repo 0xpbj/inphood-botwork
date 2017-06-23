@@ -55,6 +55,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
       const {upc, nf_sugars, nix_brand_name, nix_brand_id, nf_ingredient_statement, food_name, serving_qty, serving_unit, meal_type} = food
       let foodSugar = nf_sugars ? Math.round(nf_sugars) : 0
       console.log('*************************')
+      console.log(food)
       if (foodSugar === 0) {
         zeroSugar += '0 sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name +'\n'
         foodName += food_name + '\n'
