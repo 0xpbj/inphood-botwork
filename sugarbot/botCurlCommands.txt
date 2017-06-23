@@ -23,32 +23,20 @@ curl -X POST -H "Content-Type: application/json" -d '{
       "composer_input_disabled":false,
       "call_to_actions":[
         {
-          "title":"My Options",
-          "type":"nested",
-          "call_to_actions":[
-            {
-              "title":"Journal ✏️",
-              "type":"postback",
-              "payload":"journal"
-            },
-            {
-              "title":"Knowledge 📚",
-              "type":"postback",
-              "payload":"knowledge"
-            },
-            {
-              "title":"Preferences ⚙️",
-              "type":"postback",
-              "payload":"preferences"
-            }
-          ]
+          "title":"Journal ✏️",
+          "type":"postback",
+          "payload":"journal"
         },
-        //{
-          //"type":"web_url",
-          //"title":"My Report",
-          //"url":"https://www.inphood.com/reports/1322516797796635/Thu_Jun_22_2017.html",
-          //"webview_height_ratio":"tall"
-        //}
+        {
+          "title":"Report 👨‍💻",
+          "type":"postback",
+          "payload":"report"
+        },
+        {
+          "title":"Preferences ⚙️",
+          "type":"postback",
+          "payload":"preferences"
+        }
       ]
     }
   ]

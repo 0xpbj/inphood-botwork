@@ -64,7 +64,8 @@ exports.fdaProcess = function (userId, barcode) {
           foodName,
           sugarPerServingStr,
           cleanText: foodName,
-          ingredientsSugarsCaps
+          ingredientsSugarsCaps,
+          photo: ''
         })
         .then(() => {
           console.log('here i got')
@@ -131,6 +132,8 @@ exports.fdaProcess = function (userId, barcode) {
       let sugarPerServing = body.nf_sugars
       let sugarPerServingStr = body.nf_sugars + 'g sugars in ' + body.nf_serving_size_qty + ' ' + body.nf_serving_size_unit + ' (' + body.nf_serving_weight_grams + 'g) serving'
       let foodName = body.brand_name
+      let photo = body.photo
+      let thumb = photo ? photo : ''
       console.log('\n\n\n\nRESULTS PARSED', ingredientsSugarsCaps, sugarPerServing, sugarPerServingStr)
       console.log('\n\n\n more info', userId, foodName, sugarPerServing)
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
@@ -139,7 +142,8 @@ exports.fdaProcess = function (userId, barcode) {
         sugarPerServingStr,
         foodName,
         cleanText: foodName,
-        ingredientsSugarsCaps
+        ingredientsSugarsCaps,
+        photo: thumb
       })
       .then(() => {
         return tempRef.child('upc').remove()
@@ -179,7 +183,8 @@ exports.fdaProcess = function (userId, barcode) {
             sugarPerServing: '',
             foodName: 'missing upc',
             cleanText: '',
-            ingredientsSugarsCaps: ''
+            ingredientsSugarsCaps: '',
+            photo: ''
           })
           .then(() => {
             return tempRef.child('upc').remove()

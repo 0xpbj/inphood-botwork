@@ -109,6 +109,7 @@ exports.otherOptions = function(option) {
         .addQuickReply('Journal ✏️', 'food journal')
         // .addQuickReply('Send food image 🥗', 'send food picture')
         .addQuickReply('Knowledge 📚', 'food knowledge')
+        .addQuickReply('Report 👨‍💻', 'report')
         .addQuickReply('Preferences ⚙️', 'preferences')
         .get()
     ]
@@ -119,6 +120,7 @@ exports.otherOptions = function(option) {
       .addQuickReply('Journal ✏️', 'food journal')
       // .addQuickReply('Send food image 🥗', 'send food picture')
       .addQuickReply('Knowledge 📚', 'food knowledge')
+        .addQuickReply('Report 👨‍💻', 'report')
       .addQuickReply('Preferences ⚙️', 'preferences')
       .get();
   }

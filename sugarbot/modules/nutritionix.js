@@ -51,8 +51,9 @@ exports.getNutritionix = function(messageText, userId, timezone) {
     let foodName = ''
     let naturalSugars = ''
     let zeroSugar = ''
+    let thumb = ''
     for (let food of foods) {
-      const {upc, nf_sugars, nix_brand_name, nix_brand_id, nf_ingredient_statement, food_name, serving_qty, serving_unit, meal_type} = food
+      const {upc, nf_sugars, nix_brand_name, nix_brand_id, nf_ingredient_statement, food_name, serving_qty, serving_unit, meal_type, photo} = food
       let foodSugar = nf_sugars ? Math.round(nf_sugars) : 0
       console.log('*************************')
       console.log(food)
@@ -71,6 +72,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         naturalSugars += 'Sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + ': ' + foodSugar + 'g\n'
         foodName += food_name + '\n'
       }
+      thumb = photo.thumb ? photo.thumb : ''
     }
     let sugarPerServingStr = ''
     if (zeroSugar !== '') {
@@ -83,15 +85,17 @@ exports.getNutritionix = function(messageText, userId, timezone) {
       sugarPerServingStr += processedSugars + 'Total processed sugars in meal: ' + psugar + 'g.'
     }
     // console.log('Amount of sugar: ', sugar)
-    console.log(sugarPerServingStr)
+    // console.log(sugarPerServingStr)
     // console.log(naturalSugars)
-    console.log(utils.getGifUrl(Math.round(psugar)))
+    // console.log(utils.getGifUrl(Math.round(psugar)))
+    console.log(thumb)
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
     return tempRef.child('/temp/data/food').update({
       sugar: psugar,
       foodName,
       cleanText,
       sugarPerServingStr,
+      photo: thumb,
       ingredientsSugarsCaps: ''
     })
     .then(() => {

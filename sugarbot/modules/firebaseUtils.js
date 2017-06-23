@@ -28,7 +28,7 @@ exports.trackSugar = function() {
   .get()
 }
 
-exports.findMyFavorites = function(favoriteMeal, userId) {
+exports.findMyFavorites = function(favoriteMeal, userId, date, fulldate) {
   let objRef = firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + favoriteMeal + '/')
   return objRef.once("value")
   .then(function(snapshot) {
@@ -52,31 +52,28 @@ exports.findMyFavorites = function(favoriteMeal, userId) {
         ingredientsSugarsCaps
       })
       .then(() => {
-        console.log('got here bub')
-        if (ingredientsSugarsCaps !== '') {
-          console.log('in if block')
-          // return 'in deebo block'
-          return [
-            sugarPerServingStr,
-            'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-            'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
-            new fbTemplate
-            .Image(utils.getGifUrl(sugarPerServing))
-            .get(),
-            exports.trackSugar()
-          ]
-        }
-        else {
-          console.log('in else block')
-          return [
-            sugarPerServingStr,
-            'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
-            new fbTemplate
-            .Image(utils.getGifUrl(sugarPerServing))
-            .get(),
-            exports.trackSugar()
-          ]
-        }
+        // if (ingredientsSugarsCaps !== '') {
+        //   return [
+        //     sugarPerServingStr,
+        //     'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
+        //     'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+        //     new fbTemplate
+        //     .Image(utils.getGifUrl(sugarPerServing))
+        //     .get(),
+        //     exports.trackSugar()
+        //   ]
+        // }
+        // else {
+        //   return [
+        //     sugarPerServingStr,
+        //     'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+        //     new fbTemplate
+        //     .Image(utils.getGifUrl(sugarPerServing))
+        //     .get(),
+        //     exports.trackSugar()
+        //   ]
+        // }
+        return exports.addSugarToFirebase(userId, date, fulldate)
       })
     })
   })
@@ -166,11 +163,14 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     var cleanText = snapshot.child('/temp/data/food/cleanText').val()
     var sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
     var ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
+    var photo = snapshot.child('/temp/data/food/photo').val()
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
     userRef.push({
       foodName,
       userId,
-      timestamp: fulldate
+      timestamp: fulldate,
+      sugar,
+      photo
     })
     var weight = snapshot.child('/preferences/currentWeight').val()
     var goalWeight = snapshot.child('/preferences/currentGoalWeight').val()
@@ -189,7 +189,8 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
       return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
         sugar,
         sugarPerServingStr,
-        ingredientsSugarsCaps
+        ingredientsSugarsCaps,
+        photo
       })
       .then(() => {
         return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({ 
@@ -204,7 +205,8 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
               'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
               "Here's your daily intake",
               track,
-              utils.trackAlertness()
+              utils.sendReminder()
+              // utils.trackAlertness()
             ]
           })
         })

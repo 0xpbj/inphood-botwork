@@ -26,7 +26,7 @@ if (firebase.apps.length === 0) {
 
 const isTestBot = false
 
-let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear']
+let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit']
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
@@ -75,6 +75,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         const {timestamp} = request.originalRequest
         const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
+        const localDateValue = new Date(localTimestamp)
+        // const localeTimeString = dateValue.toLocaleTimeString('en-US', {timeZone: timezone})
+        const localeTimeString = localDateValue.toLocaleTimeString()
         var dateValue = new Date(localTimestamp)
         var date = dateValue.toDateString()
         var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
@@ -93,7 +96,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         }
         else if (favFlag && messageText) {
           // return 'adding your favorite: ' + request.text
-          return fire.findMyFavorites(request.text, userId)
+          return fire.findMyFavorites(request.text, userId, date, timestamp)
         }
         else if (manual && messageText) {
           const inputSugar = utils.boundsChecker(messageText)
@@ -131,8 +134,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                       'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
                       "Here's your daily intake",
                       track,
-                      // utils.sendReminder()
-                      utils.trackAlertness()
+                      utils.sendReminder()
+                      // utils.trackAlertness()
                     ]
                   })
                 })
@@ -170,8 +173,8 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                       'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
                       "Here's your daily intake",
                       track,
-                      // utils.sendReminder()
-                      utils.trackAlertness()
+                      utils.sendReminder()
+                      // utils.trackAlertness()
                     ]
                   })
                 })
@@ -269,10 +272,6 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
                 console.log('REQUEST -----------------------------------------')
                 console.log(request)
-                const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
-                const localDateValue = new Date(localTimestamp)
-                // const localeTimeString = dateValue.toLocaleTimeString('en-US', {timeZone: timezone})
-                const localeTimeString = localDateValue.toLocaleTimeString()
                 return [
                   "dateValue: " + dateValue,
                   "localDateValue: " + localDateValue,
@@ -315,19 +314,34 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                         'message':{
                           'attachment':{
                             'type':'template',
-                             'payload':{
-                                'template_type':'button',
-                                'text':'sugarinfoAI Reports',
-                                'buttons' : [
-                                  {
-                                    'type' : 'web_url',
-                                    'url' : result,
-                                    'title' : 'Today\'s Food',
-                                    'webview_height_ratio' : 'tall',
-                                    'messenger_extensions' : true
-                                  }
-                                ]
-                             }
+                            "payload":{
+                              "template_type":"generic",
+                              "elements":[
+                                 {
+                                  "title":"sugarinfoAI Daily Report",
+                                  "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
+                                  "subtitle":first_name + "'s sugar consumption for " + localDateValue.toLocaleDateString(),
+                                  "default_action": {
+                                    "url": result,
+                                    "type": "web_url",
+                                    "messenger_extensions": true,
+                                    "webview_height_ratio": "tall",
+                                    "fallback_url": "https://www.inphood.com/"
+                                  },
+                                  "buttons":[
+                                    {
+                                      "url":result,
+                                      "type":"web_url",
+                                      "title":"View Report",
+                                      "webview_height_ratio": "tall"
+                                    },
+                                    {
+                                      "type":"element_share"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
                           }
                         }
                       },
