@@ -104,7 +104,7 @@ exports.otherOptions = function(option) {
   if (option === true) {
     return [
       "Welcome to sugarinfoAI! I'm here to help you understand sugar 🤓",
-      new fbTemplate.Text("What would you like to do?")
+      new fbTemplate.Text("Here are your options")
         // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
         .addQuickReply('Journal ✏️', 'food journal')
         // .addQuickReply('Send food image 🥗', 'send food picture')
