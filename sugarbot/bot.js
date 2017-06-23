@@ -657,9 +657,13 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             default: {
-              console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-              console.log('GOING INTO NUTRITIONIX')
               return nutrition.getNutritionix(messageText, userId, timezone)
+              // return [
+              //   new fbTemplate
+              //   .Image('http://i.imgur.com/uhHyYvP.gif')
+              //   .get(),
+              //   nutrition.getNutritionix(messageText, userId, timezone)
+              // ]
             }
           }
         }

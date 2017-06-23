@@ -43,12 +43,12 @@ curl -X POST -H "Content-Type: application/json" -d '{
             }
           ]
         },
-        {
-          "type":"web_url",
-          "title":"My Report",
-          "url":"https://www.inphood.com/reports/1322516797796635/Thu_Jun_22_2017.html",
-          "webview_height_ratio":"full"
-        }
+        //{
+          //"type":"web_url",
+          //"title":"My Report",
+          //"url":"https://www.inphood.com/reports/1322516797796635/Thu_Jun_22_2017.html",
+          //"webview_height_ratio":"tall"
+        //}
       ]
     }
   ]
