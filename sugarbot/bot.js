@@ -24,6 +24,8 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
+const isTestBot = false
+
 let bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear']
 
 module.exports = botBuilder(function (request, originalApiRequest) {
@@ -64,7 +66,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         let timezone = snapshot.child('/profile/timezone').val()
         let first_name = snapshot.child('/profile/first_name').val()
         // should only happens once...unless user updates profile
-        if (!first_name) {
+        if (!first_name && !isTestBot) {
           fire.trackUserProfile(userId)
         }
         // defaults to PST
@@ -264,7 +266,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         else if (messageText) {
           switch (messageText) {
             case 'debug': {
-              if (userId === '1547345815338571' || userId === '1322516797796635') {  // AC or PBJ
+              if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
                 console.log('REQUEST -----------------------------------------')
                 console.log(request)
                 const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
@@ -287,51 +289,56 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               }
             }
             case 'debug_report': {
-              if (userId === '1547345815338571' || userId === '1322516797796635') {  // AC or PBJ
-
-                console.log('TESTING WEBVIEW CODE BELOW')
-                console.log('date: ' + date)
-                console.log('userId: ' + userId)
+              if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
                 //
                 // 1. Generate today's report of what was eaten.
                 // 2. Send a webview button to the user allowing them to see
                 //    what was eaten.
-
                 return report.writeReportToS3(date, userId, snapshot)
+                .then(result => {
+                  if (isTestBot) {
+                    return result
+                  } else {
+                    console.log('LAUNCHING WEBVIEW')
+                    console.log('-----------------------------------------------')
+                    console.log('recipient userId = ' + userId)
+                    console.log('result = ' + result)
 
-                // const webviewButtonOptions = {
-                //   uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
-                //   json: true,
-                //   method: 'POST',
-                //   body: {
-                //     'recipient':{
-                //       'id':'1547345815338571'
-                //     },
-                //     'message':{
-                //       'attachment':{
-                //         'type':'template',
-                //          'payload':{
-                //             'template_type':'button',
-                //             'text':'sugarinfoAI Reports',
-                //             'buttons' : [
-                //               {
-                //                 'type' : 'web_url',
-                //                 'url' : 'https://www.inphood.com/reports/report.html',
-                //                 'title' : 'Today\'s Food',
-                //                 'webview_height_ratio' : 'tall',
-                //                 'messenger_extensions' : true
-                //               }
-                //             ]
-                //          }
-                //       }
-                //     }
-                //   },
-                //   resolveWithFullResponse: true,
-                //   headers: {
-                //     'Content-Type': "application/json"
-                //   }
-                // }
-                // return requestPromise(webviewButtonOptions)
+                    const webviewButtonOptions = {
+                      uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
+                      json: true,
+                      method: 'POST',
+                      body: {
+                        'recipient':{
+                          'id':userId
+                        },
+                        'message':{
+                          'attachment':{
+                            'type':'template',
+                             'payload':{
+                                'template_type':'button',
+                                'text':'sugarinfoAI Reports',
+                                'buttons' : [
+                                  {
+                                    'type' : 'web_url',
+                                    'url' : result,
+                                    'title' : 'Today\'s Food',
+                                    'webview_height_ratio' : 'tall',
+                                    'messenger_extensions' : true
+                                  }
+                                ]
+                             }
+                          }
+                        }
+                      },
+                      resolveWithFullResponse: true,
+                      headers: {
+                        'Content-Type': "application/json"
+                      }
+                    }
+                    return requestPromise(webviewButtonOptions)
+                  }
+                })
               }
             }
             case 'other options': {
@@ -523,6 +530,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 console.log('Something went wrong with firebase')
               })
             }
+            case 'knowledge':
             case 'sugar knowledge':
             case 'food knowledge': {
               return new fbTemplate.Text('What would you like to do know?')
