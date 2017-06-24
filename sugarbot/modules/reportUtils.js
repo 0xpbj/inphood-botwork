@@ -98,8 +98,6 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
 
     sugarConsumptionReport += '<ul class="list-group">'
 
-    const todoImg = '<img src="./img200x200.svg" class="media-object" alt="Sample Image" width="64" height="64">'
-
     for (let key in sugarConsumptionToday) {
       if (key === 'dailyTotal') {
         continue
@@ -110,6 +108,12 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       const sugarLine = (sugar !== null && sugar !== undefined) ?
         '<small>(' + sugar + ' ' + measure + ' sugars)</small>' : ''
 
+      const imgSrc = sugarConsumptionToday[key].photo
+      const imgHtml = (imgSrc) ?
+        '<img src="' + imgSrc + '" class="media-object" alt="Sample Image" width="64" height="64">' :
+        '<img src="../assets/blank.png" class="media-object" alt="Sample Image" width="64" height="64">'
+
+
       sugarConsumptionReport += ' \
         <li class="list-group-item justify-content-between"> \
           <div class="media"> \
@@ -118,7 +122,7 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
               ' + sugarLine + ' \
             </div> \
             <div class="media-right"> \
-              ' + todoImg + ' \
+              ' + imgHtml + ' \
             </div> \
           </div> \
         </li>'
@@ -142,9 +146,24 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
     sugarConsumptionReport += '</ul>'
   }
 
-  console.log('SUGAR PROGRESS BAR:')
-  console.log('---------------------------------------------------------------')
-  console.log(sugarProgressBar)
+
+  let sugarHistoryChart = ''
+  const hasChartData = snapshot.exists() &&
+                       snapshot.child('sugarIntake').exists()
+
+  if (hasChartData) {
+    const sugarConsumptionHistory = snapshot.child('sugarIntake').val()
+
+    sugarHistoryChart += '<ul>'
+    for (let day in sugarConsumptionHistory) {
+      sugarHistoryChart += '<li>' + day + '</li>'
+    }
+    sugarHistoryChart += '<ul>'
+  }
+
+
+
+  const sectionSpacer = '<div style="height: 10px;">&nbsp</div>'
 
   const reportHtml = ' \
   <!DOCTYPE html> \
@@ -176,15 +195,20 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       <div style="padding-right: 10px; padding-left: 10px;"> \
         <h3 class="text-center">' + date + '</h3> \
    \
-        <div style="height: 20px;">&nbsp</div> \
-        <h4 class="text-left">Sugar Consumed (' + percentSugarToday + '% of maximum)</h4> \
+        ' + sectionSpacer + ' \
+        <h4 class="text-left">Sugar Today (' + percentSugarToday + '% of maximum)</h4> \
         <div class="progress" style="height: ' + progBarHeight + ';"> \
         ' + sugarProgressBar + ' \
         </div> \
    \
-        <div style="height: 20px;">&nbsp</div> \
-        <h4 class="text-left">Food Journal</h4> \
+        ' + sectionSpacer + ' \
+        <h4 class="text-left">Sugar Journal</h4> \
         ' + sugarConsumptionReport + ' \
+   \
+        ' + sectionSpacer + ' \
+        <h4 class="text-left">Sugar History</h4> \
+        ' + sugarHistoryChart + ' \
+   \
       </div> \
     </body> \
   </html> '
