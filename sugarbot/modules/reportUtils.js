@@ -1,4 +1,4 @@
-exports.writeReportToS3 = function(date, userId, snapshot) {
+exports.writeReportToS3 = function(date, userId, snapshot, timezone) {
   const S3 = require('aws-sdk').S3
   const s3 = new S3({
     accessKeyId:     'AKIAJQGBMJOHENSKGD4A',
@@ -103,29 +103,96 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         continue
       }
 
-      const sugar = sugarConsumptionToday[key].sugar
-      const measure = (sugar > 1) ? 'grams' : 'gram'
-      const sugarLine = (sugar !== null && sugar !== undefined) ?
-        '<small>(' + sugar + ' ' + measure + ' sugars)</small>' : ''
+      // Two use cases:
+      // 1. Single item use case.
+      //      - length of photo array and sugarArr will be 1
+      //      - foodName will contain zero or one '\n'
+      //      --> display on one line with image, g sugar, and time
+      //
+      // 2. Multi-item use case.
+      //      - length of photo array > 1, sugarArr > 1
+      //      - foodName will contain > 1 '\n'
+      //      --> display aggregate on first line with total sugar, no picture, time
+      //        --> indented display each sub-component
+      //
+      const foodName = sugarConsumptionToday[key].foodName
+      const photoArr = sugarConsumptionToday[key].photo
+      const sugarArr = sugarConsumptionToday[key].sugarArr
+      const totalSugar = sugarConsumptionToday[key].sugar
+      // TODO: time stuff
+      // const timeStamp = sugarConsumptionToday[key].timestamp
+      // const localTime = new Date(timestamp + (timezone * 60 * 60 * 1000))
 
-      const imgSrc = sugarConsumptionToday[key].photo
-      const imgHtml = (imgSrc) ?
-        '<img src="' + imgSrc + '" class="media-object" alt="Sample Image" width="64" height="64">' :
-        '<img src="../assets/blank.png" class="media-object" alt="Sample Image" width="64" height="64">'
+      const singleItemUseCase = (sugarArr.length === 1 || sugarArr === null)
 
+      if (singleItemUseCase) {
+        const measure = (totalSugar > 1) ? 'grams' : 'gram'
+        const sugarLine = (totalSugar !== null && totalSugar !== undefined) ?
+          '<small>(' + totalSugar + ' ' + measure + ' sugars)</small>' : ''
 
-      sugarConsumptionReport += ' \
-        <li class="list-group-item justify-content-between"> \
-          <div class="media"> \
-            <div class="media-body"> \
-              <h5 class="media-heading">' + sugarConsumptionToday[key].foodName + '</h5> \
-              ' + sugarLine + ' \
+        const imgSrc = (photoArr) ? photoArr[0] : '../assets/blank.png'
+        const imgHtml = '<img src="' + imgSrc + '" class="media-object" alt="Sample Image" width="64" height="64">'
+
+        sugarConsumptionReport += ' \
+          <li class="list-group-item justify-content-between"> \
+            <div class="media"> \
+              <div class="media-body"> \
+                <h5 class="media-heading">' + foodName.replace('\n', '') + '</h5> \
+                ' + sugarLine + ' \
+              </div> \
+              <div class="media-right"> \
+                ' + imgHtml + ' \
+              </div> \
             </div> \
-            <div class="media-right"> \
-              ' + imgHtml + ' \
+          </li>'
+      } else {  // Multi-item use case:
+        const measure = (totalSugar > 1) ? 'grams' : 'gram'
+        const sugarLine = (totalSugar !== null && totalSugar !== undefined) ?
+          '<small>(' + totalSugar + ' ' + measure + ' sugars)</small>' : ''
+        // TODO: trim out the last '\n' in title food name, then replace
+        //       remaining '\n' with ','
+        const titleFoodName = foodName.replace(/\n$/g, '')
+        const foods = titleFoodName.split('\n')
+
+        // Indented lines
+        let indentedConsumptionReport = ''
+        for (let index = 0; index < foods.length; index++) {
+          const measure = (sugarArr[index] > 1) ? 'grams' : 'gram'
+          const indentedSugarLine = (sugarArr[index]) ?
+            '<small>(' + sugarArr[index] + ' ' + measure + ' sugars)</small>' : ''
+          const imgSrc = (photoArr[index]) ? photoArr[index] : '../assets/blank.png'
+          const indentedImgHtml = '<img src="' + imgSrc + '" class="media-object" alt="Sample Image" width="64" height="64">'
+
+          indentedConsumptionReport += ' \
+            <div class="media"> \
+              <div class="media-left">&nbsp;&nbsp;&nbsp;</div> \
+              <div class="media-body"> \
+                <h6 class="media-heading">' + foods[index] + '</h6> \
+                ' + indentedSugarLine + ' \
+              </div> \
+              <div class="media-right"> \
+                ' + indentedImgHtml + ' \
+              </div> \
+            </div>'
+        }
+
+        const imgHtml = '<img src="../assets/blank.png" class="media-object" alt="Sample Image" width="64" height="64">'
+        // Main line
+        sugarConsumptionReport += ' \
+          <li class="list-group-item justify-content-between"> \
+            <div class="media"> \
+              <div class="media-body"> \
+                <h5 class="media-heading">' + titleFoodName + '</h5> \
+                ' + sugarLine + ' \
+              </div> \
+              <div class="media-right"> \
+                ' + imgHtml + ' \
+              </div> \
             </div> \
-          </div> \
-        </li>'
+            ' + indentedConsumptionReport + ' \
+          </li>'
+      }
+
     }
 
 

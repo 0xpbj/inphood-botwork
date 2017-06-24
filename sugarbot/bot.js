@@ -253,7 +253,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 // 1. Generate today's report of what was eaten.
                 // 2. Send a webview button to the user allowing them to see
                 //    what was eaten.
-                return report.writeReportToS3(date, userId, snapshot)
+                return report.writeReportToS3(date, userId, snapshot, timezone)
                 .then(result => {
                   if (isTestBot) {
                     return result
@@ -320,7 +320,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             }
             case 'report':
             case 'my report': {
-              return report.writeReportToS3(date, userId, snapshot)
+              return report.writeReportToS3(date, userId, snapshot, timezone)
               .then(result => {
                   if (isTestBot) {
                     return result
