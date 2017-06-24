@@ -122,13 +122,15 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         else {
           return [
             'Congratulations! 🎉🎉 No processed sugars found!',
-            new fbTemplate.Text('When should I remind you to track your next meal?')
-              .addQuickReply('1 hour', 'time1')
-              .addQuickReply('3 hours', 'time3')
-              .addQuickReply('5 hours', 'time5')
-              .addQuickReply('24 hours', 'timeTomorrow')
-              .addQuickReply("Don't ask", 'notime')
-              .get()
+            // new fbTemplate.Text('When should I remind you to track your next meal?')
+            //   .addQuickReply('1 hour', 'time1')
+            //   .addQuickReply('3 hours', 'time3')
+            //   .addQuickReply('5 hours', 'time5')
+            //   .addQuickReply('24 hours', 'timeTomorrow')
+            //   .addQuickReply("Don't ask", 'notime')
+            //   .get()
+            // fire.addSugarToFirebase(userId, date, fulldate)
+            fire.trackSugar()
           ]
         }
       })
