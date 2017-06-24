@@ -279,17 +279,22 @@ exports.parseMyFavorites = function(favorites) {
     let length = Object.keys(favorites[object].date).length
     favArr.push({length, object})
   }
-  console.log('Pre sorted', favArr)
-  console.log('\n\n\n\n\n')
+  // console.log('Pre sorted', favArr)
+  // console.log('\n\n\n\n\n')
   favArr.sort(function(a, b) {
-    return (a.length < b.length)
+    // console.log('A', a)
+    // console.log('B', b)
+    return (a.length > b.length)
   })
-  console.log('Post sorted', favArr)
+  // console.log('\n\n\n\n\n')
+  var revArr = favArr.reverse()
+  // console.log('Post sorted', revArr)
   let i = 0
-  for (let it of favArr) {
+  for (let it of revArr) {
     if (i === 4)
       break
     i++
+    console.log(it.object.toLowerCase())
     myFavs
     .addQuickReply(it.object.toLowerCase(), it.object)
   }

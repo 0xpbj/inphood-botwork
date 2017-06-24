@@ -698,6 +698,19 @@ module.exports = botBuilder(function (request, originalApiRequest) {
               })
             }
             default: {
+              if (snapshot.child('/temp/data/food').val()) {
+                const sentiment = require('sentiment');
+                const r1 = sentiment(messageText);
+                if (r1) {
+                  return fire.addSugarToFirebase(userId, date, timestamp)
+                }
+                else {
+                  return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
+                  .then(function() {
+                    return utils.otherOptions(false)
+                  })
+                }
+              }
               return nutrition.getNutritionix(messageText, userId, timezone)
               // return [
               //   new fbTemplate

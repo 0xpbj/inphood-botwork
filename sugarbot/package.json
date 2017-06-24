@@ -23,7 +23,8 @@
     "porter-stemmer": "^0.9.1",
     "quagga": "^0.11.6",
     "request": "^2.81.0",
-    "request-promise": "^4.2.1"
+    "request-promise": "^4.2.1",
+    "sentiment": "^4.0.0"
   },
   "description": ""
 }
