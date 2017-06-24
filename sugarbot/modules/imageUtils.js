@@ -258,6 +258,7 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
     resolveWithFullResponse: true,
     headers: {Authorization: "Bearer 'EAAJhTtF5K30BAObDIIHWxtZA0EtwbVX6wEciIZAHwrwBJrXVXFZCy69Pn07SoyzZAeZCEmswE0jUzamY7Nfy71cZB8O7BSZBpTZAgbDxoYEE5Og7nbkoQvMaCafrBkH151s4wl91zOCLbafkdJiWLIc6deW9jSZBYdjh2NE4JbDSZBAwZDZD'"}
   }
+  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
   const request = require('request-promise')
   return request(fbOptions)
   .then(result => {
@@ -279,10 +280,13 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
         return exports.fdaProcess(userId, response)
       })
       .catch(() => {
-        return new fbTemplate.Text("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
-        .addQuickReply('Yes  ✅', 'analyze upc')
-        .addQuickReply('No  ❌', 'other options')
-        .get()
+        return tempRef.child('upc').remove()
+        .then(() => {
+          return new fbTemplate.Text("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
+          .addQuickReply('Yes  ✅', 'analyze upc')
+          .addQuickReply('No  ❌', 'other options')
+          .get()
+        })
       })
     }
     else if (cvFlag) {
@@ -317,7 +321,6 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
           crtext = "Here's what I see: " + concepts[0].name + ". Can you please tell me what the ingredients are?"
         }
         console.log('Clarifai response', crtext)
-        var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data")
         return tempRef.child('cv').set({
           flag: false
         })
