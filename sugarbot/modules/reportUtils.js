@@ -154,11 +154,65 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
   if (hasChartData) {
     const sugarConsumptionHistory = snapshot.child('sugarIntake').val()
 
-    sugarHistoryChart += '<ul>'
+    // sugarHistoryChart += '<ul>'
+    let dataDaySugar = []
     for (let day in sugarConsumptionHistory) {
-      sugarHistoryChart += '<li>' + day + '</li>'
+      const dateMs = Date.parse(day)
+      const sugarG = sugarConsumptionHistory[day].dailyTotal.sugar
+      dataDaySugar.push({dateMs: dateMs, sugarG: sugarG, dayString: day})
     }
-    sugarHistoryChart += '<ul>'
+
+    dataDaySugar.sort(function(a, b) {
+      return a.dateMs - b.dateMs
+    })
+
+    labels = '['
+    data = '['
+    for (let index in dataDaySugar) {
+      let dateSugarDay = dataDaySugar[index]
+      // sugarHistoryChart += '<li>' + dateSugarDay.dateMs + ', ' + dateSugarDay.sugarG + '</li>'
+      if (index != dataDaySugar.length - 1) {
+        labels += '"", '
+        data += dateSugarDay.sugarG + ', '
+      } else {
+        labels += '""]'
+        data += dateSugarDay.sugarG + ']'
+      }
+    }
+
+    // sugarHistoryChart += '<ul>'
+
+    sugarHistoryChart += ' \
+    <div> \
+      <canvas id="sugarHistoryChart"/> \
+      <script> \
+        $(function () { \
+          var data = { \
+            labels: ' + labels + ', \
+            datasets: [ \
+              { \
+                label: "Sugar (grams)", \
+                fillColor: "rgba(151,187,205,0.2)", \
+                strokeColor: "rgba(151,187,205,1)", \
+                pointColor: "rgba(151,187,205,1)", \
+                pointStrokeColor: "#fff", \
+                pointHighlightFill: "#fff", \
+                pointHighlightStroke: "rgba(151,187,205,1)", \
+                data: ' + data + ' \
+              } \
+            ] \
+          }; \
+   \
+          var option = { \
+           responsive: true, \
+          }; \
+   \
+          var ctx = document.getElementById("sugarHistoryChart").getContext("2d"); \
+          var myLineChart = new Chart(ctx).Line(data, option); \
+        }); \
+    </script> \
+   \
+    </div> '
   }
 
 
@@ -182,6 +236,14 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> \
       <!-- Include all compiled plugins (below), or include individual files as needed --> \
       <script src="../../lib/bootstrap/js/bootstrap.min.js"></script> \
+      <!-- MDB core JavaScript --> \
+      <script type="text/javascript" src="../../lib/mdbootstrap/js/mdb.min.js"></script> \
+   \
+      <!-- Font Awesome --> \
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css"> \
+   \
+      <!-- Material Design Bootstrap --> \
+      <link href="../../lib/mdbootstrap/css/mdb.min.css" rel="stylesheet"> \
    \
       <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries --> \
       <!-- WARNING: Respond.js doesn\'t work if you view the page via file:// --> \
