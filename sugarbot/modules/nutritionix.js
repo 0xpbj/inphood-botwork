@@ -108,9 +108,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
       ingredientsSugarsCaps: ''
     })
     .then(() => {
-      return tempRef.child('/temp/data/question/').update({
-        flag: false
-      })
+      return tempRef.child('/temp/data/question/').remove()
       .then(() => {
         if (Math.round(psugar) > 2) {
           return [

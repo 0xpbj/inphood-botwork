@@ -98,89 +98,49 @@ module.exports = botBuilder(function (request, originalApiRequest) {
           // return 'adding your favorite: ' + request.text
           return fire.findMyFavorites(request.text, userId, date, timestamp)
         }
-        else if (manual && messageText) {
+        else if ((manual || missingUPC) && messageText) {
           const inputSugar = utils.boundsChecker(messageText)
           if (inputSugar === -1) {
             return 'Invalid input. Please enter a valid number!'
           }
-          return tempRef.once("value")
-          .then(tsnapshot => {
-            const cleanText = snapshot.child('/temp/data/food/cleanText').val()
-            const sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
-            const ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
-            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
+          if (manual) {
+            const sugar = snapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
             const newVal = sugar + inputSugar
-            const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
             return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
               sugar: newVal
             })
             .then(() => {
-              return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({
-                sugar: inputSugar,
-                sugarPerServingStr,
-                ingredientsSugarsCaps
-              })
+              return tempRef.child('/temp/data/manual').remove()
               .then(() => {
-                return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({
-                  timestamp: Date.now(),
-                })
-                .then(() => {
-                  return tempRef.child('/temp/data/manual').remove()
-                  .then(() => {
-                    // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                    let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
-                    return [
-                      'Added ' + inputSugar + 'g to your journal',
-                      'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
-                      "Here's your daily intake",
-                      track,
-                      utils.sendReminder()
-                      // utils.trackAlertness()
-                    ]
-                  })
-                })
-              })
-            })
-          })
-        }
-        else if (missingUPC && messageText) {
-          const inputSugar = utils.boundsChecker(messageText)
-          if (inputSugar === -1) {
-            return 'Invalid input. Please enter a valid number!'
-          }
-          return tempRef.once("value")
-          .then(tsnapshot => {
-            const sugar = tsnapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
-            const newVal = sugar + inputSugar
-            const goalSugar = tsnapshot.child('/preferences/currentGoalSugar').val()
-            return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
-              sugar: newVal
-            })
-            .then(() => {
-              return tempRef.child("/temp/data/missing/").once("value")
-              .then(snapshot => {
-                const barcode = snapshot.child('barcode').val()
-                return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
+                return tempRef.child('/temp/data/food').update({
                   sugar: inputSugar
                 })
                 .then(() => {
-                  return tempRef.child('/temp/data/').remove()
+                  return fire.addSugarToFirebase(userId, date, timestamp)
+                })
+              })
+            })
+          }
+          else if (missingUPC) {
+            return tempRef.child("/temp/data/missing/").once("value")
+            .then(tsnapshot => {
+              const barcode = tsnapshot.child('barcode').val()
+              return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
+                sugar: inputSugar
+              })
+              .then(() => {
+                return tempRef.child('/temp/data/missing').remove()
+                .then(() => {
+                  return tempRef.child('/temp/data/food').update({
+                    sugar: inputSugar
+                  })
                   .then(() => {
-                    // 'Got it! Added ' + inputSugar + 'g of sugar to your daily total',
-                    let track = fire.calculateDailyTracking(weight, newVal, userId, goalSugar)
-                    return [
-                      'Added ' + inputSugar + 'g to your journal',
-                      'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
-                      "Here's your daily intake",
-                      track,
-                      utils.sendReminder()
-                      // utils.trackAlertness()
-                    ]
+                    return fire.addSugarToFirebase(userId, date, timestamp)
                   })
                 })
               })
             })
-          })
+          }
         }
         else if (weight && messageText) {
           return tempRef.child('/preferences/' + date).update({
@@ -361,6 +321,65 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'report':
             case 'my report': {
               return report.writeReportToS3(date, userId, snapshot)
+              .then(result => {
+                  if (isTestBot) {
+                    return result
+                  } else {
+                    console.log('LAUNCHING WEBVIEW')
+                    console.log('-----------------------------------------------')
+                    console.log('recipient userId = ' + userId)
+                    console.log('result = ' + result)
+
+                    const webviewButtonOptions = {
+                      uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
+                      json: true,
+                      method: 'POST',
+                      body: {
+                        'recipient':{
+                          'id':userId
+                        },
+                        'message':{
+                          'attachment':{
+                            'type':'template',
+                            "payload":{
+                              "template_type":"generic",
+                              "elements":[
+                                 {
+                                  "title":"sugarinfoAI Daily Report",
+                                  "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
+                                  "subtitle":first_name + "'s sugar consumption for " + localDateValue.toLocaleDateString(),
+                                  "default_action": {
+                                    "url": result,
+                                    "type": "web_url",
+                                    "messenger_extensions": true,
+                                    "webview_height_ratio": "tall",
+                                    "fallback_url": "https://www.inphood.com/"
+                                  },
+                                  "buttons":[
+                                    {
+                                      "url":result,
+                                      "type":"web_url",
+                                      "title":"View Report",
+                                      "webview_height_ratio": "tall"
+                                    },
+                                    {
+                                      "type":"element_share"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      resolveWithFullResponse: true,
+                      headers: {
+                        'Content-Type': "application/json"
+                      }
+                    }
+                    return requestPromise(webviewButtonOptions)
+                  }
+                })
             }
             case 'send upc label':
             case 'upc label':

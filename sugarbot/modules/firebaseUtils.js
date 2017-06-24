@@ -36,9 +36,7 @@ exports.findMyFavorites = function(favoriteMeal, userId, date, fulldate) {
     let sugarPerServingStr = snapshot.child('sugarPerServingStr').val()
     let ingredientsSugarsCaps = snapshot.child('ingredientsSugarsCaps').val()
     console.log('results', sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
-    return firebase.database().ref('/global/sugarinfoai/' + userId + '/temp/data/favorites').update({
-      flag: false
-    })
+    return firebase.database().ref('/global/sugarinfoai/' + userId + '/temp/data/favorites').remove()
     .then(() => {
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
       let sugar = parseInt(sugarPerServing)
@@ -231,9 +229,7 @@ exports.sugarChecker = function(messageText, userId) {
       result !== '') {
     console.log('That is a processed sugar')
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-    return tempRef.child('sugar').update({
-      flag: false
-    })
+    return tempRef.child('sugar').remove()
     .then(() => {
       return [
         `That's a processed sugar ingredient!`,
@@ -244,9 +240,7 @@ exports.sugarChecker = function(messageText, userId) {
   else {
     console.log('That is NOT a processed sugar')
     var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-    return tempRef.child('sugar').update({
-      flag: false
-    })
+    return tempRef.child('sugar').remove()
     .then(() => {
       return [
         `That's not a processed sugar ingredient!`,
