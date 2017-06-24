@@ -35,30 +35,73 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
                   snapshot.child('sugarIntake').exists() &&
                   snapshot.child('sugarIntake/' + date).exists()
 
-  let sugarConsumptionReport = '<h1>Sugar Consumption Today</h1>'
-  let newSugarConsumptionReport = ''
-  if (!hasData) {
-    sugarConsumptionReport += '<p>You have not added any foods to your journal today.</p>'
-    newSugarConsumptionReport += '<p>You have not added any foods to your journal today.</p>'
-  } else {
-    sugarConsumptionReport += '<ol>'
-    newSugarConsumptionReport += '<ul class="list-group">'
+  console.log('writeReportToS3: hasData = ' + hasData)
+  // Progress Bar Issues / TODOs:
+  //  - when %age is low (i.e. < 5%, it may be hard to read the label amount)
+  //  - when %age is over 100%, consider doing the multiple bars approach shown here:
+  //      https://v4-alpha.getbootstrap.com/components/progress/
+  //      - could show the 1st 100% as normal and then the next n% as danger colored
+  //
+  let sugarProgressBar = ''
+  let sugarConsumptionReport = ''
 
-    const todoSugar = '?'
-    const todoImg = '<img src="./img200x200.svg" class="media-object" alt="Sample Image" width="64" height="64">'
+  if (!hasData) {
+    sugarProgressBar += ' \
+      <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: 100px; line-height: 100px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
+        <h5 class="text-center" style="vertical-align: middle; display: inline-block;">0%</h5> \
+      </div>'
+
+    sugarConsumptionReport += '<p>You have not added any foods to your journal today.</p>'
+  } else {
     const sugarConsumptionToday = snapshot.child('sugarIntake/' + date).val()
+    const totalSugarToday = sugarConsumptionToday['dailyTotal'].sugar
+    let sugarGoal = snapshot.child('preferences').exists() &&
+                      snapshot.child('preferences/currentGoalSugar').exists() ?
+                      snapshot.child('preferences/currentGoalSugar').val() : undefined
+
+    if (sugarGoal === undefined) {
+      console.log('ERROR: UNDEFINED SUGAR GOAL - DEFAULTING TO PBJ 40')
+      sugarGoal = 40
+    }
+
+    const progBarColor = (totalSugarToday <= sugarGoal) ?
+      'progress-bar-success' : 'progress-bar-danger'
+
+    const progress = Math.round(100.0 * totalSugarToday / sugarGoal)
+    const progBarAriaNow = progress.toString()
+    const progBarWidth = progBarAriaNow + '%'
+    if (progress < 1) {
+      sugarProgressBar += ' \
+        <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: 100px; line-height: 100px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
+          <h5 class="text-center" style="vertical-align: middle; display: inline-block;">0%</h5> \
+        </div>'
+    } else {
+      sugarProgressBar += ' \
+        <div class="progress-bar ' + progBarColor + '" role="progressbar" style="width: ' + progBarWidth + '; height: 100px; line-height: 100px;" aria-valuenow="' + progBarAriaNow + '" aria-valuemin="0" aria-valuemax="100"> \
+          <h5 class="text-center" style="vertical-align: middle; display: inline-block;">' + progBarWidth + '</h5> \
+        </div>'
+    }
+
+
+    sugarConsumptionReport += '<ul class="list-group">'
+
+    const todoImg = '<img src="./img200x200.svg" class="media-object" alt="Sample Image" width="64" height="64">'
+
     for (let key in sugarConsumptionToday) {
       if (key === 'dailyTotal') {
         continue
       }
-      sugarConsumptionReport += '<li>' + sugarConsumptionToday[key].foodName + '</li>'
 
-      newSugarConsumptionReport += ' \
+      const sugar = sugarConsumptionToday[key].sugar
+      const sugarLine = (sugar !== null && sugar !== undefined) ?
+        '<small>(' + sugar + 'grams sugars)</small>' : ''
+
+      sugarConsumptionReport += ' \
         <li class="list-group-item justify-content-between"> \
           <div class="media"> \
             <div class="media-body"> \
               <h5 class="media-heading">' + sugarConsumptionToday[key].foodName + '</h5> \
-              <small>(' + todoSugar + 'g sugar)</small> \
+              ' + sugarLine + ' \
             </div> \
             <div class="media-right"> \
               ' + todoImg + ' \
@@ -67,10 +110,8 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         </li>'
     }
 
-    sugarConsumptionReport += '</ol>'
-    sugarConsumptionReport += '<p>Total Sugar ' + sugarConsumptionToday['dailyTotal'].sugar + ' grams</p>'
 
-    newSugarConsumptionReport += ' \
+    sugarConsumptionReport += ' \
       <li class="list-group-item justify-content-between"> \
       </li> \
   \
@@ -80,26 +121,18 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
             <h4 class="media-heading">Total</h4> \
           </div> \
           <div class="media-body text-right"> \
-            ' + sugarConsumptionToday['dailyTotal'].sugar + ' grams sugar \
+            ' + totalSugarToday + ' grams sugar \
           </div> \
         </div> \
       </li>'
-    newSugarConsumptionReport += '</ul>'
+    sugarConsumptionReport += '</ul>'
   }
 
-  const reportHtml = ' \
-    <!DOCTYPE html> \
-    <html> \
-      <head> \
-        <title>' + title + '</title> \
-      </head> \
-      <body>' +
-        msgrExtensionsScript + ' \
-        ' + sugarConsumptionReport + ' \
-      </body> \
-    </html>'
+  console.log('SUGAR PROGRESS BAR:')
+  console.log('---------------------------------------------------------------')
+  console.log(sugarProgressBar)
 
-  const newReportHtml = ' \
+  const reportHtml = ' \
   <!DOCTYPE html> \
   <html lang="en"> \
     <head> \
@@ -126,10 +159,16 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
     </head> \
     <body>' +
       msgrExtensionsScript + ' \
-      <div> \
-        <h4 class="text-center">' + date + '</h4> \
+      <div style="padding-right: 10px; padding-left: 10px;"> \
+        <h3 class="text-center">' + date + '</h3> \
    \
-        ' + newSugarConsumptionReport + ' \
+        <h4 class="text-center">Sugar Consumed</h4> \
+        <div class="progress" style="height: 100px;"> \
+        ' + sugarProgressBar + ' \
+        </div> \
+   \
+        <h4 class="text-center">Food Journal</h4> \
+        ' + sugarConsumptionReport + ' \
       </div> \
     </body> \
   </html> '
@@ -142,7 +181,7 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
     Bucket: 'www.inphood.com',
     Key: 'reports/' + userId + '/' + offset + '.html',
     // Key: 'reports/' + userId + '.html',
-    Body: newReportHtml,
+    Body: reportHtml,
     ContentType: 'text/html',
     ACL: 'public-read'
   }
