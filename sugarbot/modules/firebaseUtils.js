@@ -164,13 +164,15 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     var sugarPerServingStr = snapshot.child('/temp/data/food/sugarPerServingStr').val()
     var ingredientsSugarsCaps = snapshot.child('/temp/data/food/ingredientsSugarsCaps').val()
     var photo = snapshot.child('/temp/data/food/photo').val()
+    var sugarArr = snapshot.child('/temp/data/food/sugarArr').val()
     var userRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date)
     userRef.push({
       foodName,
       userId,
       timestamp: fulldate,
       sugar,
-      photo
+      photo,
+      sugarArr
     })
     var weight = snapshot.child('/preferences/currentWeight').val()
     var goalWeight = snapshot.child('/preferences/currentGoalWeight').val()
@@ -188,6 +190,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     .then(() => {
       return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
         sugar,
+        sugarArr,
         sugarPerServingStr,
         ingredientsSugarsCaps,
         photo

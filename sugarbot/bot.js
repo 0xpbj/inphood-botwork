@@ -547,7 +547,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
             case 'knowledge':
             case 'sugar knowledge':
             case 'food knowledge': {
-              return new fbTemplate.Text('What would you like to do know?')
+              return new fbTemplate.Text('What would you like to know?')
                 .addQuickReply('Facts 🎲', 'Random Sugar Facts')
                 .addQuickReply('Recipes 📅', 'recipe')
                 .addQuickReply('Processed? 🍭', 'Processed Sugar?')

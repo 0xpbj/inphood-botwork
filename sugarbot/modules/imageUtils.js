@@ -59,13 +59,16 @@ exports.fdaProcess = function (userId, barcode) {
       if (sugarPerServing && ingredientsSugarsCaps) {
         var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
         let sugar = parseInt(sugarPerServing)
+        let sugarArr = []
+        sugarArr.push(sugar)
         return tempRef.child('food').set({
           sugar: sugar,
           foodName,
           sugarPerServingStr,
           cleanText: foodName,
           ingredientsSugarsCaps,
-          photo: ''
+          photo: [''],
+          sugarArr
         })
         .then(() => {
           console.log('here i got')
@@ -133,7 +136,15 @@ exports.fdaProcess = function (userId, barcode) {
       let sugarPerServingStr = body.nf_sugars + 'g sugars in ' + body.nf_serving_size_qty + ' ' + body.nf_serving_size_unit + ' (' + body.nf_serving_weight_grams + 'g) serving'
       let foodName = body.brand_name
       let photo = body.photo
-      let thumb = photo ? photo : ''
+      let thumb = []
+      if (photo) {
+        thumb.push(photo)
+      }
+      else {
+        thumb.push('')
+      }
+      let sugarArr = []
+      sugarArr.push(sugarPerServing)
       console.log('\n\n\n\nRESULTS PARSED', ingredientsSugarsCaps, sugarPerServing, sugarPerServingStr)
       console.log('\n\n\n more info', userId, foodName, sugarPerServing)
       var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
@@ -143,7 +154,8 @@ exports.fdaProcess = function (userId, barcode) {
         foodName,
         cleanText: foodName,
         ingredientsSugarsCaps,
-        photo: thumb
+        photo: thumb,
+        sugarArr
       })
       .then(() => {
         return tempRef.child('upc').remove()
@@ -184,7 +196,8 @@ exports.fdaProcess = function (userId, barcode) {
             foodName: 'missing upc',
             cleanText: '',
             ingredientsSugarsCaps: '',
-            photo: ''
+            sugarArr: [],
+            photo: []
           })
           .then(() => {
             return tempRef.child('upc').remove()

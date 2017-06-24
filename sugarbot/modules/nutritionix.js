@@ -51,7 +51,8 @@ exports.getNutritionix = function(messageText, userId, timezone) {
     let foodName = ''
     let naturalSugars = ''
     let zeroSugar = ''
-    let thumb = ''
+    let thumb = []
+    let sugarArr = []
     for (let food of foods) {
       const {upc, nf_sugars, nix_brand_name, nix_brand_id, nf_ingredient_statement, food_name, serving_qty, serving_unit, meal_type, photo} = food
       let foodSugar = nf_sugars ? Math.round(nf_sugars) : 0
@@ -72,7 +73,14 @@ exports.getNutritionix = function(messageText, userId, timezone) {
         naturalSugars += 'Sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + ': ' + foodSugar + 'g\n'
         foodName += food_name + '\n'
       }
-      thumb = photo.thumb ? photo.thumb : ''
+      // thumb = photo.thumb ? photo.thumb : ''
+      if (photo.thumb !== '') {
+        thumb.push(photo.thumb)
+      }
+      else {
+        thumb.push('')
+      }
+      sugarArr.push(foodSugar)
     }
     let sugarPerServingStr = ''
     if (zeroSugar !== '') {
@@ -96,6 +104,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
       cleanText,
       sugarPerServingStr,
       photo: thumb,
+      sugarArr,
       ingredientsSugarsCaps: ''
     })
     .then(() => {
