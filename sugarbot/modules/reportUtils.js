@@ -27,13 +27,12 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
   // 2. Pie-chart showing amount consumed vs. goal / remaining
   // 3. Progress on weight vs sugar Consumption
   //
-
-  const sugarIntake = snapshot.child('/sugarIntake/' + date).val()
-
   const title = 'Sugar Info - ' + date
   const hasData = snapshot.exists() &&
                   snapshot.child('sugarIntake').exists() &&
                   snapshot.child('sugarIntake/' + date).exists()
+
+  const progBarHeight = '40px'
 
   console.log('writeReportToS3: hasData = ' + hasData)
   // Progress Bar Issues / TODOs:
@@ -44,10 +43,11 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
   //
   let sugarProgressBar = ''
   let sugarConsumptionReport = ''
+  let percentSugarToday = 0
 
   if (!hasData) {
     sugarProgressBar += ' \
-      <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: 100px; line-height: 100px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
+      <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: ' + progBarHeight + '; line-height: 40px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
         <h5 class="text-center" style="vertical-align: middle; display: inline-block;">0%</h5> \
       </div>'
 
@@ -68,16 +68,29 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       'progress-bar-success' : 'progress-bar-danger'
 
     const progress = Math.round(100.0 * totalSugarToday / sugarGoal)
+    percentSugarToday = progress
     const progBarAriaNow = progress.toString()
     const progBarWidth = progBarAriaNow + '%'
     if (progress < 1) {
       sugarProgressBar += ' \
-        <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: 100px; line-height: 100px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
+        <div class="progress-bar" role="progressbar" style="background: transparent; color: black; width: 100%; height: ' + progBarHeight + '; line-height: ' + progBarHeight + ';" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> \
           <h5 class="text-center" style="vertical-align: middle; display: inline-block;">0%</h5> \
+        </div>'
+    } else if (progress > 100) {
+      const overage = Math.round(progress) - 100
+      const mainWidth = Math.round(95 * (100 / Math.round(progress)))
+      const overWidth = 95 - mainWidth + 1
+
+      sugarProgressBar += ' \
+        <div class="progress-bar progress-bar-success" role="progressbar" style="width: ' + mainWidth + '%; height: ' + progBarHeight + '; line-height: ' + progBarHeight + ';" aria-valuenow="' + mainWidth + '" aria-valuemin="0" aria-valuemax="100"> \
+          <h5 class="text-center" style="vertical-align: middle; display: inline-block;">100%</h5> \
+        </div> \
+        <div class="progress-bar progress-bar-danger" role="progressbar" style="width: ' + overWidth + '%; height: ' + progBarHeight + '; line-height: ' + progBarHeight + ';" aria-valuenow="' + overWidth + '" aria-valuemin="0" aria-valuemax="100"> \
+          <h5  class="text-center" style="vertical-align: middle; display: inline-block;">+' + overage + '%</h5> \
         </div>'
     } else {
       sugarProgressBar += ' \
-        <div class="progress-bar ' + progBarColor + '" role="progressbar" style="width: ' + progBarWidth + '; height: 100px; line-height: 100px;" aria-valuenow="' + progBarAriaNow + '" aria-valuemin="0" aria-valuemax="100"> \
+        <div class="progress-bar ' + progBarColor + '" role="progressbar" style="width: ' + progBarWidth + '; height: ' + progBarHeight + '; line-height: ' + progBarHeight + ';" aria-valuenow="' + progBarAriaNow + '" aria-valuemin="0" aria-valuemax="100"> \
           <h5 class="text-center" style="vertical-align: middle; display: inline-block;">' + progBarWidth + '</h5> \
         </div>'
     }
@@ -93,8 +106,9 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       }
 
       const sugar = sugarConsumptionToday[key].sugar
+      const measure = (sugar > 1) ? 'grams' : 'gram'
       const sugarLine = (sugar !== null && sugar !== undefined) ?
-        '<small>(' + sugar + 'grams sugars)</small>' : ''
+        '<small>(' + sugar + ' ' + measure + ' sugars)</small>' : ''
 
       sugarConsumptionReport += ' \
         <li class="list-group-item justify-content-between"> \
@@ -162,12 +176,14 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       <div style="padding-right: 10px; padding-left: 10px;"> \
         <h3 class="text-center">' + date + '</h3> \
    \
-        <h4 class="text-center">Sugar Consumed</h4> \
-        <div class="progress" style="height: 100px;"> \
+        <div style="height: 20px;">&nbsp</div> \
+        <h4 class="text-left">Sugar Consumed (' + percentSugarToday + '% of maximum)</h4> \
+        <div class="progress" style="height: ' + progBarHeight + ';"> \
         ' + sugarProgressBar + ' \
         </div> \
    \
-        <h4 class="text-center">Food Journal</h4> \
+        <div style="height: 20px;">&nbsp</div> \
+        <h4 class="text-left">Food Journal</h4> \
         ' + sugarConsumptionReport + ' \
       </div> \
     </body> \
