@@ -123,7 +123,9 @@ exports.writeReportToS3 = function(date, userId, snapshot, timezone) {
       // const timeStamp = sugarConsumptionToday[key].timestamp
       // const localTime = new Date(timestamp + (timezone * 60 * 60 * 1000))
 
-      const singleItemUseCase = (sugarArr.length === 1 || sugarArr === null)
+      const singleItemUseCase = ((sugarArr === null) ||
+                                 (sugarArr === undefined) ||
+                                 (sugarArr.length === 1))
 
       if (singleItemUseCase) {
         const measure = (totalSugar > 1) ? 'grams' : 'gram'
@@ -151,9 +153,10 @@ exports.writeReportToS3 = function(date, userId, snapshot, timezone) {
           '<small>(' + totalSugar + ' ' + measure + ' sugars)</small>' : ''
         // TODO: trim out the last '\n' in title food name, then replace
         //       remaining '\n' with ','
-        const titleFoodName = foodName.replace(/\n$/g, '')
-        const foods = titleFoodName.split('\n')
+        let titleFoodName = foodName.replace(/\n$/g, '')
+        titleFoodName = titleFoodName.replace(/\n/g, ', ')
 
+        const foods = titleFoodName.split(', ')
         // Indented lines
         let indentedConsumptionReport = ''
         for (let index = 0; index < foods.length; index++) {
