@@ -572,6 +572,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 .addQuickReply('Processed? 🍭', 'Processed Sugar?')
                 .get()
             }
+            case '1 hour':
             case 'time1': {
               const time = timestamp + (1*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
@@ -584,6 +585,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case '3 hours':
             case 'time3': {
               const time = timestamp + (3*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
@@ -596,6 +598,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case '5 hours':
             case 'time5': {
               const time = timestamp + (5*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
@@ -608,6 +611,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case '24 hours':
             case 'timetomorrow': {
               const time = timestamp + (24*3600*1000)
               return firebase.database().ref("/global/sugarinfoai/reminders/" + userId).update({
@@ -620,6 +624,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
                 ]
               })
             }
+            case 'don\'t ask':
             case 'notime': {
               return tempRef.child('/preferences/nextReminder').remove()
               .then(() => {
