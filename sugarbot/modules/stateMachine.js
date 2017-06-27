@@ -55,7 +55,7 @@ exports.bot = function(request, messageText, userId) {
       timezone = -7
     }
     const {timestamp} = request.originalRequest
-    const date = timeUtils.getUserDateString(timestamp)
+    const date = timeUtils.getUserDateString(timestamp, timezone)
 
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (sugarCheckerFlag && messageText) {
@@ -205,12 +205,13 @@ exports.bot = function(request, messageText, userId) {
     }
     else if (messageText) {
       switch (messageText) {
-        case 'debug': {
+        case 'debug_user_time': {
           if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
             console.log('REQUEST -----------------------------------------')
             console.log(request)
             return [
-              "date: " + date
+              "date: " + date,
+              "time: " + timeUtils.getUserTimeString(timestamp, timezone)
             ]
           }
         }
