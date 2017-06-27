@@ -106,9 +106,9 @@ exports.otherOptions = function(option) {
       "Welcome to sugarinfoAI! I'm here to help you understand sugar 🤓",
       new fbTemplate.Text("Here are your options")
         // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-        .addQuickReply('Journal ✏️', 'food journal')
+        .addQuickReply('Journal ✏️', 'journal')
         // .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Knowledge 📚', 'food knowledge')
+        .addQuickReply('Knowledge 📚', 'knowledge')
         .addQuickReply('Report 💻', 'report')
         .addQuickReply('Preferences ⚙️', 'preferences')
         .get()
@@ -117,9 +117,9 @@ exports.otherOptions = function(option) {
   else {
     return new fbTemplate.Text('What would you like to do next?')
       // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-      .addQuickReply('Journal ✏️', 'food journal')
+      .addQuickReply('Journal ✏️', 'journal')
       // .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Knowledge 📚', 'food knowledge')
+      .addQuickReply('Knowledge 📚', 'knowledge')
         .addQuickReply('Report ‍💻', 'report')
       .addQuickReply('Preferences ⚙️', 'preferences')
       .get();

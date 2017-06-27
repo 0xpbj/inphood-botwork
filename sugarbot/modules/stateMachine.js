@@ -23,20 +23,10 @@ const fbConfig = {
 if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
-const isTestBot = false
+const isTestBot = true
 
-const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit']
-
-exports.bot = function(request) {
-  const userId = request.originalRequest.sender.id
-  var messageText = request.text ? request.text.toLowerCase() : null
-  var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
-  if (bailArr.indexOf(messageText) > -1) {
-    return tempRef.child('/temp/data/').remove()
-    .then(() => {
-      return utils.otherOptions(true)
-    })
-  }
+exports.bot = function(request, messageText, userId) {
+  const tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
   return tempRef.once("value")
   .then(function(snapshot) {
     const sugarCheckerFlag = snapshot.child('/temp/data/sugar/flag').val()
@@ -431,31 +421,15 @@ exports.bot = function(request) {
         }
         case 'favorites':
         case 'my favorites': {
+          if (!favorites) {
+            return 'Favorites are shown once you add meals to your journal'
+          }
           return tempRef.child('/temp/data/favorites').update({
             flag: true
           })
           .then(() => {
             return utils.parseMyFavorites(favorites)
           })
-        }
-        case 'journal':
-        case 'sugar journal':
-        case 'food journal': {
-          if (favorites) {
-            return new fbTemplate.Text('What would you like to do next?')
-            .addQuickReply('Favorites 😍', 'my favorites')
-            .addQuickReply('UPC 🏷', 'analyze upc')
-            .addQuickReply('Description ✏️', 'food question')
-            .addQuickReply('Photo 🥗', 'send food picture')
-            .get()
-          }
-          else {
-            return new fbTemplate.Text('What would you like to do next?')
-            .addQuickReply('UPC 🏷', 'analyze upc')
-            .addQuickReply('Description ✏️', 'food question')
-            .addQuickReply('Photo 🥗', 'send food picture')
-            .get()
-          }
         }
         case 'food question':
         case 'question': {
@@ -476,18 +450,6 @@ exports.bot = function(request) {
             return "Please send me a picture of your meal and I'll try to guess what you're eating"
           })
         }
-        case 'another random sugar fact':
-        case 'hit me with a fact':
-        case 'random sugar fact':
-        case 'random sugar facts': {
-          return utils.randomSugarFacts()
-        }
-        case 'recipe':
-        case "today's recipe":
-        case 'send me todays recipe':
-        case 'sugar recipe': {
-          return utils.todaysSugarRecipe(timestamp)
-        }
         case 'processed ingredient':
         case 'try another sugar?':
         case 'processed sugar?':
@@ -504,24 +466,14 @@ exports.bot = function(request) {
             ]
           })
         }
-        case 'share': {
-          return utils.sendShareButton()
-        }
         case 'add sugar': {
           return fire.addSugarToFirebase(userId, date, timestamp)
         }
         case 'remove temp food data': {
           return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
-          .then(function() {
+          .then(() => {
             return utils.otherOptions(false)
           })
-        }
-        case 'preferences': {
-          return new fbTemplate.Text('What would you like to do?')
-            .addQuickReply('Sugar Goal', 'goalsugar')
-            .addQuickReply('Current Weight', 'weight')
-            .addQuickReply('Weight Goal', 'goalWeight')
-            .get()
         }
         case 'weight': {
           return tempRef.child('/temp/data/preferences').update({
@@ -552,15 +504,6 @@ exports.bot = function(request) {
           .catch(error => {
             console.log('Something went wrong with firebase')
           })
-        }
-        case 'knowledge':
-        case 'sugar knowledge':
-        case 'food knowledge': {
-          return new fbTemplate.Text('What would you like to know?')
-            .addQuickReply('Facts 🎲', 'Random Sugar Facts')
-            .addQuickReply('Recipes 📅', 'recipe')
-            .addQuickReply('Processed? 🍭', 'Processed Sugar?')
-            .get()
         }
         case '1 hour':
         case 'time1': {
