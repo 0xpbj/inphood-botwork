@@ -23,7 +23,7 @@ const fbConfig = {
 if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
-const isTestBot = true
+const isTestBot = false
 
 const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit']
 
