@@ -5,6 +5,7 @@ const fire = require('./firebaseUtils.js')
 const image = require('./imageUtils.js')
 const nutrition = require ('./nutritionix.js')
 const report = require('./reportUtils.js')
+const timeUtils = require('./timeUtils.js')
 
 const botBuilder = require('claudia-bot-builder')
 const fbTemplate = botBuilder.fbTemplate
@@ -51,15 +52,11 @@ exports.bot = function(request, messageText, userId) {
     }
     // defaults to PST
     if (!timezone) {
-      timezone = -8
+      timezone = -7
     }
     const {timestamp} = request.originalRequest
-    const localTimestamp = timestamp + (timezone * 60 * 60 * 1000)
-    const localDateValue = new Date(localTimestamp)
-    // const localeTimeString = dateValue.toLocaleTimeString('en-US', {timeZone: timezone})
-    const localeTimeString = localDateValue.toLocaleTimeString()
-    var dateValue = new Date(localTimestamp)
-    var date = dateValue.toDateString()
+    const date = timeUtils.getUserDateString(timestamp)
+
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (sugarCheckerFlag && messageText) {
       return fire.sugarChecker(messageText, userId)
@@ -213,18 +210,8 @@ exports.bot = function(request, messageText, userId) {
             console.log('REQUEST -----------------------------------------')
             console.log(request)
             return [
-              "dateValue: " + dateValue,
-              "localDateValue: " + localDateValue,
-              "localeTimeString: " + localeTimeString,
               "date: " + date
             ]
-            // return ["timestamp: " + timestamp,
-            //        "dateValue: " + dateValue,
-            //        "date: " + date,
-            //        "Date.now(): " + Date.now(),
-            //        "request.originalRequest: ",
-            //        origReqKeys]
-                  //  "Date.now date: " + Date(Date.now()).toDateString()]
           }
         }
         case 'debug_report': {
@@ -260,7 +247,7 @@ exports.bot = function(request, messageText, userId) {
                              {
                               "title":"sugarinfoAI Daily Report",
                               "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                              "subtitle":first_name + "'s sugar consumption for " + localDateValue.toLocaleDateString(),
+                              "subtitle":first_name + "'s sugar consumption for " + date,
                               "default_action": {
                                 "url": result,
                                 "type": "web_url",
@@ -327,7 +314,7 @@ exports.bot = function(request, messageText, userId) {
                              {
                               "title":"sugarinfoAI Daily Report",
                               "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                              "subtitle":first_name + "'s sugar consumption for " + localDateValue.toLocaleDateString(),
+                              "subtitle":first_name + "'s sugar consumption for " + date,
                               "default_action": {
                                 "url": result,
                                 "type": "web_url",
