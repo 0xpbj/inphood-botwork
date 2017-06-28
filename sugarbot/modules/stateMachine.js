@@ -4,7 +4,6 @@ const utils = require('./utils.js')
 const fire = require('./firebaseUtils.js')
 const image = require('./imageUtils.js')
 const nutrition = require ('./nutritionix.js')
-const report = require('./reportUtils.js')
 const constants = require('./constants.js')
 const timeUtils = require('./timeUtils.js')
 
