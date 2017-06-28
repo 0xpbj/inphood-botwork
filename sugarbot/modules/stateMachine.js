@@ -81,20 +81,13 @@ exports.bot = function(request, messageText, userId) {
         return 'Invalid input. Please enter a valid number!'
       }
       if (manual) {
-        const sugar = snapshot.child('/sugarIntake/' + date + '/dailyTotal/sugar').val()
-        const newVal = sugar + inputSugar
-        return tempRef.child('/sugarIntake/' + date + '/dailyTotal').update({
-          sugar: newVal
-        })
+        return tempRef.child('/temp/data/manual').remove()
         .then(() => {
-          return tempRef.child('/temp/data/manual').remove()
+          return tempRef.child('/temp/data/food').update({
+            sugar: inputSugar
+          })
           .then(() => {
-            return tempRef.child('/temp/data/food').update({
-              sugar: inputSugar
-            })
-            .then(() => {
-              return fire.addSugarToFirebase(userId, date, timestamp)
-            })
+            return fire.addSugarToFirebase(userId, date, timestamp)
           })
         })
       }

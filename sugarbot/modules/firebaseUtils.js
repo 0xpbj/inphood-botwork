@@ -146,6 +146,13 @@ exports.calculateDailyTracking = function(weight, sugar, userId, goalSugar) {
   return retLine
 }
 
+function subSlashes( str ) {
+  if (str) {
+    return str.replace(/[\/]/g, '_');
+  }
+  return ''
+}
+
 exports.addSugarToFirebase = function(userId, date, fulldate) {
   // console.log('in add sugar to firebase')
   // var date = new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), dateValue.getHours(), dateValue.getMinutes(), dateValue.getSeconds()))
@@ -181,12 +188,31 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     if (!goalSugar)
       goalSugar = 40
     var newVal = parseInt(val) + parseInt(sugar)
+    console.log('+++++++++++++++++++++', cleanText)
+    if (foodName === 'missing upc' || !cleanText) {
+      return firebase.database().ref('/global/sugarinfoai/' + userId + '/sugarIntake/' + date + '/dailyTotal/').update({ sugar: newVal })
+      .then(() => {
+        return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data/').remove()
+        .then(() => {
+          let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
+          return [
+            'Added ' + sugar + 'g to your journal',
+            'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
+            "Here's your daily intake",
+            track,
+            utils.sendReminder()
+            // utils.trackAlertness()
+          ]
+        })
+      })
+    }
+    let cleanPath = subSlashes(cleanText)
     // const cleanName = foodName.substr(0, foodName.indexOf(' ')).toLowerCase()
     // console.log(cleanName)
     // var sugarRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/sugarIntake/" + date + "/dailyTotal")
     return firebase.database().ref('/global/sugarinfoai/' + userId + '/sugarIntake/' + date + '/dailyTotal/').update({ sugar: newVal })
     .then(() => {
-      return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText).update({ 
+      return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanPath).update({ 
         sugar,
         sugarArr,
         sugarPerServingStr,
@@ -194,11 +220,11 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
         photo
       })
       .then(() => {
-        return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanText + '/date').push({ 
+        return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' +  cleanPath + '/date').push({ 
           timestamp: Date.now(),
         })
         .then(() => {
-          return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data/food').remove()
+          return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data').remove()
           .then(() => {
             let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
             return [

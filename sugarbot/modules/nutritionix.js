@@ -105,7 +105,7 @@ exports.getNutritionix = function(messageText, userId, timezone) {
       sugarPerServingStr,
       photo: thumb,
       sugarArr,
-      ingredientsSugarsCaps: ''
+      ingredientsSugarsCaps: null
     })
     .then(() => {
       return tempRef.child('/temp/data/question/').remove()
