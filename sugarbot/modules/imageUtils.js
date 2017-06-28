@@ -95,10 +95,13 @@ exports.fdaProcess = function (userId, barcode) {
               ]
             }
             else if (sugar === 0) {
-              return [
-                'Congratulations! 🎉🎉 No sugars found!',
-                utils.otherOptions(false)
-              ]
+              return tempRef.remove()
+              .then(() => {
+                return [
+                  'Congratulations! 🎉🎉 No sugars found!',
+                  utils.otherOptions(false)
+                ]
+              })
             }
           })
           .catch(rerror => {
@@ -172,10 +175,13 @@ exports.fdaProcess = function (userId, barcode) {
             ]
           }
           else {
-            return [
-              'Congratulations! 🎉🎉 No sugars found!',
-              utils.otherOptions(false)
-            ]
+            return tempRef.remove()
+            .then(() => {
+              return [
+                'Congratulations! 🎉🎉 No sugars found!',
+                utils.otherOptions(false)
+              ]
+            })
           }
         })
       })
@@ -212,10 +218,13 @@ exports.fdaProcess = function (userId, barcode) {
                 ]
               }
               else {
-                return [
-                  'Congratulations! 🎉🎉 No sugars found!',
-                  utils.otherOptions(false)
-                ]
+                return tempRef.remove()
+                .then(() => {
+                  return [
+                    'Congratulations! 🎉🎉 No sugars found!',
+                    utils.otherOptions(false)
+                  ]
+                })
               }
             })
           })
