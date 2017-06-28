@@ -5,6 +5,7 @@ const fire = require('./firebaseUtils.js')
 const image = require('./imageUtils.js')
 const nutrition = require ('./nutritionix.js')
 const report = require('./reportUtils.js')
+const constants = require('./constants.js')
 const timeUtils = require('./timeUtils.js')
 
 const botBuilder = require('claudia-bot-builder')
@@ -206,7 +207,7 @@ exports.bot = function(request, messageText, userId) {
     else if (messageText) {
       switch (messageText) {
         case 'debug_user_time': {
-          if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
+          if (isTestBot || constants.testUsers.includes(userId)) {
             console.log('REQUEST -----------------------------------------')
             console.log(request)
             return [
@@ -215,8 +216,23 @@ exports.bot = function(request, messageText, userId) {
             ]
           }
         }
+        case 'debug_report_queue': {
+          if (isTestBot || constants.testUsers.includes(userId)) {
+            console.log('DEBUG REPORT QUEUE ----------------------------------')
+            const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
+            const reportRequest = {
+              reportType: 'dailySummary',
+              userId: userId,
+              userTimeStamp: timestamp
+            }
+            // const dbReportQueueEntry = dbReportQueue.child(timestamp)
+            // dbReportQueueEntry.set(reportRequest)
+            dbReportQueue.push(reportRequest)
+            return ''
+          }
+        }
         case 'debug_report': {
-          if (userId === '1547345815338571' || userId === '1322516797796635' || isTestBot) {  // AC or PBJ
+          if (isTestBot || constants.testUsers.includes(userId)) {
             //
             // 1. Generate today's report of what was eaten.
             // 2. Send a webview button to the user allowing them to see

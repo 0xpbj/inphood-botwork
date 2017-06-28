@@ -4,6 +4,8 @@ const schedule = require('node-schedule')
 const requestPromise = require('request-promise')
 
 const constants = require('../sugarbot/modules/constants.js')
+const timeUtils = require('../sugarbot/modules/timeUtils.js')
+const dailyReportUtils = require('./reportUtils.js')
 
 // Setting this up as standard firebase client:
 //   - https://firebase.google.com/docs/web/setup
@@ -22,31 +24,91 @@ if (firebase.apps.length === 0) {
 // app.get('/', function (req, res) {
 //   res.send('Hello World!')
 // })
-
-function processReportRequests(snapshot) {
-  if (!snapshot.exists()) {
-    return
+function getReportWebView(userId, firstName, date, link) {
+  return {
+    uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
+    json: true,
+    method: 'POST',
+    body: {
+      'recipient':{
+        'id':userId
+      },
+      'message':{
+        'attachment':{
+          'type':'template',
+          "payload":{
+            "template_type":"generic",
+            "elements":[
+               {
+                "title":"sugarinfoAI Daily Report",
+                "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
+                "subtitle":firstName + "'s sugar consumption for " + date,
+                "default_action": {
+                  "url": link,
+                  "type": "web_url",
+                  "messenger_extensions": true,
+                  "webview_height_ratio": "tall",
+                  "fallback_url": "https://www.inphood.com/"
+                },
+                "buttons":[
+                  {
+                    "url":link,
+                    "type":"web_url",
+                    "title":"View Report",
+                    "webview_height_ratio": "tall"
+                  },
+                  {
+                    "type":"element_share"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    resolveWithFullResponse: true,
+    headers: {
+      'Content-Type': "application/json"
+    }
   }
+}
 
-  const reportRequests = snapshot.val()
+function processReportRequest(requestSnapshot) {
+  if (requestSnapshot.exists()) {
 
-  console.log('reportRequests: ' + reportRequests)
-  for (let userId in reportRequests) {
-    console.log(userId + ' requests a ' + reportRequests[userId] + ' report')
+    const request = requestSnapshot.val()
+    if (request.reportType || request.userId) {
+      console.log(request.userId + ' requested a ' +
+                  request.reportType + ' report at ' + request.userTimeStamp)
+
+      const dbUserId = firebase.database().ref("/global/sugarinfoai/" + request.userId)
+      return dbUserId.once('value')
+      .then(function(userSnapshot) {
+        const userTimeZone = userSnapshot.child('/profile/timezone').val()
+        const firstName = userSnapshot.child('/profile/first_name').val()
+        const date = timeUtils.getUserDateString(request.userTimeStamp, userTimeZone)
+
+        return dailyReportUtils.writeReportToS3(date, request.userId, userSnapshot)
+        .then(result => {
+          return requestPromise(
+            getReportWebView(request.userId, firstName, date, result))
+        })
+      })
+    }
   }
 }
 
 app.listen(3010, function () {
-  console.log('App listening on port 3010!')
 
-  console.log('Signing into firebase anonymously:')
   return firebase.auth().signInAnonymously()
   .then(() => {
     const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
-    const dbReportQueue = dbSugarInfo.child('report_queue')
+    const dbReportQueue = dbSugarInfo.child('reportQueue')
 
-    // TODO: maybe this ought to be once instead of on? (Not clear to me if
-    //       this is getting called repeatedly)
-    dbReportQueue.on('value', processReportRequests);
+    return dbReportQueue.on('child_added', function(childSnapshot, prevChildKey) {
+      processReportRequest(childSnapshot)
+      return
+    })
   })
 })

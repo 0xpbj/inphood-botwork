@@ -33,7 +33,7 @@ if (firebase.apps.length === 0) {
 function queue_notification(
   dbNotQueue, currentTimeMs, timeHrs, userId, notificationType = 'reminder') {
 
-  if (testMode && !testUsers.include(userId)) {
+  if (testMode && !testUsers.includes(userId)) {
     return
   }
 
@@ -51,7 +51,7 @@ function queue_notification(
 }
 
 function send_notification(userId) {
-  if (testMode && !testUsers.include(userId)) {
+  if (testMode && !testUsers.includes(userId)) {
     return
   }
 
@@ -110,7 +110,7 @@ function send_notification(userId) {
 }
 
 function send_report(userId) {
-  if (testMode && !testUsers.include(userId)) {
+  if (testMode && !testUsers.includes(userId)) {
     return
   }
 
