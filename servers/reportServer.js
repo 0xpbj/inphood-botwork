@@ -76,7 +76,9 @@ function getReportWebView(userId, firstName, date, link) {
 
 function processReportRequest(request) {
   if (request.reportType || request.userId) {
-    console.log(request.userId + ' requested a ' +
+    const machineTime = new Date()
+    console.log('current time: ' + machineTime.toString())
+    console.log('  ' + request.userId + ' requested a ' +
                 request.reportType + ' report at ' + request.userTimeStamp)
 
     const dbUserId = firebase.database().ref("/global/sugarinfoai/" + request.userId)
@@ -84,14 +86,13 @@ function processReportRequest(request) {
     .then(function(userSnapshot) {
       const userTimeZone = userSnapshot.child('/profile/timezone').val()
       const firstName = userSnapshot.child('/profile/first_name').val()
-      const date = timeUtils.getUserDateString(request.userTimeStamp, userTimeZone) + ' ' +
-                   timeUtils.getUserTimeString(request.userTimeStamp, userTimeZone)
-
-
+      const date = timeUtils.getUserDateString(request.userTimeStamp, userTimeZone)
       return dailyReportUtils.writeReportToS3(date, request.userId, userSnapshot)
       .then(result => {
+        const dateTime = date + ' ' +
+          timeUtils.getUserTimeString(request.userTimeStamp, userTimeZone)
         return requestPromise(
-          getReportWebView(request.userId, firstName, date, result))
+          getReportWebView(request.userId, firstName, dateTime, result))
       })
     })
   }

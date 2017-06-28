@@ -216,154 +216,23 @@ exports.bot = function(request, messageText, userId) {
             ]
           }
         }
-        case 'debug_report_queue': {
-          if (isTestBot || constants.testUsers.includes(userId)) {
-            console.log('DEBUG REPORT QUEUE ----------------------------------')
-            const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
-            const reportRequest = {
-              reportType: 'dailySummary',
-              userId: userId,
-              userTimeStamp: timestamp
-            }
-            // const dbReportQueueEntry = dbReportQueue.child(timestamp)
-            // dbReportQueueEntry.set(reportRequest)
-            dbReportQueue.push(reportRequest)
-            return ''
-          }
-        }
-        case 'debug_report': {
-          if (isTestBot || constants.testUsers.includes(userId)) {
-            //
-            // 1. Generate today's report of what was eaten.
-            // 2. Send a webview button to the user allowing them to see
-            //    what was eaten.
-            return report.writeReportToS3(date, userId, snapshot, timezone)
-            .then(result => {
-              if (isTestBot) {
-                return result
-              } else {
-                console.log('LAUNCHING WEBVIEW')
-                console.log('-----------------------------------------------')
-                console.log('recipient userId = ' + userId)
-                console.log('result = ' + result)
-
-                const webviewButtonOptions = {
-                  uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
-                  json: true,
-                  method: 'POST',
-                  body: {
-                    'recipient':{
-                      'id':userId
-                    },
-                    'message':{
-                      'attachment':{
-                        'type':'template',
-                        "payload":{
-                          "template_type":"generic",
-                          "elements":[
-                             {
-                              "title":"sugarinfoAI Daily Report",
-                              "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                              "subtitle":first_name + "'s sugar consumption for " + date,
-                              "default_action": {
-                                "url": result,
-                                "type": "web_url",
-                                "messenger_extensions": true,
-                                "webview_height_ratio": "tall",
-                                "fallback_url": "https://www.inphood.com/"
-                              },
-                              "buttons":[
-                                {
-                                  "url":result,
-                                  "type":"web_url",
-                                  "title":"View Report",
-                                  "webview_height_ratio": "tall"
-                                },
-                                {
-                                  "type":"element_share"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  resolveWithFullResponse: true,
-                  headers: {
-                    'Content-Type': "application/json"
-                  }
-                }
-                return requestPromise(webviewButtonOptions)
-              }
-            })
-          }
-        }
         case 'other options': {
           return utils.otherOptions(false)
         }
         case 'report':
         case 'my report': {
-          return report.writeReportToS3(date, userId, snapshot, timezone)
-          .then(result => {
-              if (isTestBot) {
-                return result
-              } else {
-                console.log('LAUNCHING WEBVIEW')
-                console.log('-----------------------------------------------')
-                console.log('recipient userId = ' + userId)
-                console.log('result = ' + result)
-
-                const webviewButtonOptions = {
-                  uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
-                  json: true,
-                  method: 'POST',
-                  body: {
-                    'recipient':{
-                      'id':userId
-                    },
-                    'message':{
-                      'attachment':{
-                        'type':'template',
-                        "payload":{
-                          "template_type":"generic",
-                          "elements":[
-                             {
-                              "title":"sugarinfoAI Daily Report",
-                              "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                              "subtitle":first_name + "'s sugar consumption for " + date,
-                              "default_action": {
-                                "url": result,
-                                "type": "web_url",
-                                "messenger_extensions": true,
-                                "webview_height_ratio": "tall",
-                                "fallback_url": "https://www.inphood.com/"
-                              },
-                              "buttons":[
-                                {
-                                  "url":result,
-                                  "type":"web_url",
-                                  "title":"View Report",
-                                  "webview_height_ratio": "tall"
-                                },
-                                {
-                                  "type":"element_share"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  resolveWithFullResponse: true,
-                  headers: {
-                    'Content-Type': "application/json"
-                  }
-                }
-                return requestPromise(webviewButtonOptions)
-              }
-            })
+          console.log('REPORT ------------------------------------------------')
+          const reportRequest = {
+            reportType: 'dailySummary',
+            userId: userId,
+            userTimeStamp: timestamp
+          }
+          console.log('  adding report request to firebase')
+          const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
+          const dbReportQueueRequest = dbReportQueue.push()
+          dbReportQueueRequest.set(reportRequest)
+          console.log('  returning')
+          return 'A report is on the way.'
         }
         case 'send upc label':
         case 'upc label':
