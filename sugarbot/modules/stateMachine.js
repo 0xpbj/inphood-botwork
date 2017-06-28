@@ -24,7 +24,7 @@ const fbConfig = {
 if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
-const isTestBot = true
+const isTestBot = false
 
 exports.bot = function(request, messageText, userId) {
   const tempRef = firebase.database().ref("/global/sugarinfoai/" + userId)
@@ -106,7 +106,7 @@ exports.bot = function(request, messageText, userId) {
             sugar: inputSugar
           })
           .then(() => {
-            return tempRef.child('/temp/data/missing').remove()
+            return tempRef.child('/temp/data/missingUPC').remove()
             .then(() => {
               return tempRef.child('/temp/data/food').update({
                 sugar: inputSugar

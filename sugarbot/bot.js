@@ -25,7 +25,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     const userId = request.originalRequest.sender.id
     var messageText = request.text ? request.text.toLowerCase() : null
     if (bailArr.indexOf(messageText) > -1) {
-      console.log('in bail array')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in bail array')
       if (firebase.auth().currentUser) {
         firebase.database().ref("/global/sugarinfoai/" + userId).child('/temp/data/').remove()
       }
@@ -41,7 +41,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       if (firebase.auth().currentUser === null) {
         firebase.auth().signInAnonymously()
       }
-      console.log('in preferences')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in preferences')
       return new fbTemplate.Text('What would you like to do?')
       .addQuickReply('Sugar Goal', 'goalsugar')
       .addQuickReply('Current Weight', 'weight')
@@ -52,7 +52,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       if (firebase.auth().currentUser === null) {
         firebase.auth().signInAnonymously()
       }
-      console.log('in journal')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in journal')
       return new fbTemplate.Text('What would you like to do next?')
       .addQuickReply('Favorites 😍', 'my favorites')
       .addQuickReply('UPC 🏷', 'analyze upc')
@@ -64,7 +64,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       if (firebase.auth().currentUser === null) {
         firebase.auth().signInAnonymously()
       }
-      console.log('in knowledge')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in knowledge')
       return new fbTemplate.Text('What would you like to know?')
       .addQuickReply('Facts 🎲', 'random sugar facts')
       .addQuickReply('Recipes 📅', 'recipe')
@@ -72,16 +72,16 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       .get()
     }
     else if (messageText === 'random sugar facts') {
-      console.log('in facts')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in facts')
       return utils.randomSugarFacts()
     }
     else if (messageText === 'recipe') {
-      console.log('in recipe')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in recipe')
       const {timestamp} = request.originalRequest
       return utils.todaysSugarRecipe(timestamp)
     }
     else if (messageText === 'share') {
-      console.log('in share')
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in share')
       return utils.sendShareButton()
     }
     else {
