@@ -2,9 +2,10 @@ const express = require('express')
 const app = express()
 const schedule = require('node-schedule')
 const requestPromise = require('request-promise')
+const constants = require('../sugarbot/modules/constants.js')
+const timeUtils = require('../sugarbot/modules/timeUtils.js')
 
-const testMode = false
-const testUsers = ['1547345815338571', '1322516797796635']  // AC, PBJ on sugarinfoAI (not sugarinfoAITest)
+const testMode = true
 
 // Setting this up as standard firebase client:
 //   - https://firebase.google.com/docs/web/setup
@@ -12,28 +13,19 @@ const testUsers = ['1547345815338571', '1322516797796635']  // AC, PBJ on sugari
 //   - https://firebase.google.com/docs/admin/setup
 //
 var firebase = require('firebase')
-var fbConfig = {
-  apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
-  authDomain: 'inphooddb-e0dfd.firebaseapp.com',
-  databaseURL: 'https://inphooddb-e0dfd.firebaseio.com',
-  projectId: 'inphooddb-e0dfd',
-  storageBucket: 'inphooddb-e0dfd.appspot.com',
-  messagingSenderId: '529180412076'
-}
 if (firebase.apps.length === 0) {
   console.log('InitializingApp on firebase with config')
-  firebase.initializeApp(fbConfig)
+  firebase.initializeApp(constants.fbConfig)
 }
 
 // app.get('/', function (req, res) {
 //   res.send('Hello World!')
 // })
 
-
 function queue_notification(
   dbNotQueue, currentTimeMs, timeHrs, userId, notificationType = 'reminder') {
 
-  if (testMode && !testUsers.includes(userId)) {
+  if (testMode && !constants.testUsers.includes(userId)) {
     return
   }
 
@@ -51,7 +43,7 @@ function queue_notification(
 }
 
 function send_notification(userId) {
-  if (testMode && !testUsers.includes(userId)) {
+  if (testMode && !constants.testUsers.includes(userId)) {
     return
   }
 
@@ -109,12 +101,23 @@ function send_notification(userId) {
   })
 }
 
-function send_report(userId) {
-  if (testMode && !testUsers.includes(userId)) {
+function queueReportJob(userId) {
+  // Send a report job to the firebase queue for the reportServer
+
+  if (testMode && !constants.testUsers.includes(userId)) {
     return
   }
 
-  console.log('Sending report to userId: ' + userId)
+  console.log('Requesting report for userId: ' + userId)
+  console.log('------------------------------------------------')
+  const reportRequest = {
+    reportType: 'dailySummary',
+    userId: userId,
+    userTimeStamp: Date.now()
+  }
+  const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
+  const dbReportQueueRequest = dbReportQueue.push()
+  dbReportQueueRequest.set(reportRequest)
 }
 
 function dequeue_notifications() {
@@ -137,7 +140,7 @@ function dequeue_notifications() {
           const userId = notificationQueue[timeMs].userId
           const notificationType = notificationQueue[timeMs].notificationType
 
-          if (testMode && !testUsers.include(userId)) {
+          if (testMode && !constants.testUsers.includes(userId)) {
             continue
           }
 
@@ -147,9 +150,9 @@ function dequeue_notifications() {
           if (notificationType === 'reminder') {
             send_notification(userId)
           } else if (notificationType === 'report') {
-            send_report(userId)
+            queueReportJob(userId)
           } else if (notificationType === 'noTrackingMessage') {
-
+            // TODO:
           }
 
           // 2. Remove this entry from the notification_queue
@@ -181,28 +184,47 @@ function dequeue_notifications() {
 //       - If a user has not tracked food that day, schedule a message about
 //         the benefits of tracking and ask if they would like to track their
 //         dinner?
+//           - punt on this for now; talk to PBJ about how to do it within
+//             FB rules/guidelines.
+//           - it's safe to message someone who tracked that day
 //
-function schedule_reports() {
-  const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
+function scheduleReports() {
+  console.log('scheduleReports')
 
-  const currentTimeGMT = Date.UTC()
+  const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
+  const dbNotQueue = dbSugarInfo.child('notification_queue')
+
+  const currentTimeUTC = Date.now()
 
   return dbSugarInfo.once('value',
     function(snapshot) {
       const sugarInfoAI = snapshot.val()
       for (let userId in sugarInfoAI) {
-        if (testMode && !testUsers.include(userId)) {
+        if (testMode && !constants.testUsers.includes(userId)) {
           continue
         }
 
-        if ('profile' in sugarInfoAI[userId] &&
-            'timezone' in sugarInfoAI[userId].profile) {
-          const timeZone = sugarInfoAI[userId].profile.timezone
+        let userSugarInfoAI = sugarInfoAI[userId]
+        if ('sugarIntake' in userSugarInfoAI &&
+            'profile' in userSugarInfoAI &&
+            'timezone' in userSugarInfoAI.profile) {
 
-          const localTimeMs = currentTimeGMT + (timeZone * 60 * 60 * 1000)
-          const localDate = new Date(localTimeMs)
-          const localTimeStr = localDate.getHours() + ':' + localDate.getMinutes()
-          console.log('UserId & TimeZone: ' + userId + ' --> GMT + ' + timeZone + ' time = ' + localDate.toTimeString())
+          const timeZone = userSugarInfoAI.profile.timezone
+          const userTimeObj = timeUtils.getUserTimeObj(currentTimeUTC, timeZone)
+
+          if (userTimeObj.hour === 3) {
+          //TODO: uncomment below when done testing
+//          if (userTimeObj.hour === 19) {
+            const userDate = timeUtils.getUserDateString(currentTimeUTC, timeZone)
+            if (userDate in userSugarInfoAI.sugarIntake) {
+              console.log('User ' + userId + ' logged meals today (' +
+                          userDate + '). Scheduling a report notification.')
+
+              if (constants.testUsers.includes(userId)) {
+                queue_notification(dbNotQueue, currentTimeUTC, 1, userId, 'report')
+              }
+            }
+          }
         }
       }
     })
@@ -213,29 +235,25 @@ app.listen(3000, function () {
   console.log('App listening on port 3000!')
 
   // Start our cron like task here that sends notifications
-  const notificationJob = schedule.scheduleJob('00 * * * * *', dequeue_notifications)
+  const notificationJob = schedule.scheduleJob('0 * * * * *', dequeue_notifications)
 
   // Start a separate cron like task here that schedules 'report' notifications
   // automatically:
-  const reportJob = schedule.scheduleJob('00 30 * * * *', schedule_reports)
+  const reportJob = schedule.scheduleJob('08 * * * *', scheduleReports)
 
   // This code listens to the 'reminders' child of our user's firebase data. If
   // a reminder appears, it creates an entry for that user in our notification_queue
   // and removes the 'reminders' entry for the user.
   //
-  console.log('Signing into firebase anonymously:')
-  let stopWatch = Date.now()
   return firebase.auth().signInAnonymously()
   .then(() => {
-    stopWatch = Date.now() - stopWatch
-    console.log('Took ' + stopWatch + ' ms to log in to firebase anonymously')
-
-    schedule_reports()
 
     const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
     const dbReminders = dbSugarInfo.child('reminders')
     const dbNotQueue = dbSugarInfo.child('notification_queue')
 
+    // TODO: add logic here to detect reminders that are very old and schedule
+    //       them appropriately as done in the report server.
     return dbReminders.on('child_added', function(snapshot, prevChildKey) {
       // Get the key and snapshot value and do the following:
       // 1. schedule a notification to occur at the specified time.
@@ -249,7 +267,7 @@ app.listen(3000, function () {
 
       const userId = snapshot.key
       if (!testMode ||
-          (testMode && (testUsers.include(userId)))) {
+          (testMode && (constants.testUsers.includes(userId)))) {
         const ssVal = snapshot.val()
 
         if ('time1' in ssVal) {

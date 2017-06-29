@@ -85,6 +85,16 @@ function getDateTimeInTZ(timeStampMs, timeZone) {
   return dateObjInTZ
 }
 
+exports.getUserTimeObj = function(timeStampMs, userTimeZone) {
+  let userTime = getDateTimeInTZ(timeStampMs, userTimeZone)
+  
+  return {
+    hour: userTime.getUTCHours(),
+    minute: userTime.getUTCMinutes(),
+    seconds: userTime.getUTCSeconds()
+  }
+}
+
 exports.getUserTimeString = function(timeStampMs, userTimeZone) {
   let userTime = getDateTimeInTZ(timeStampMs, userTimeZone)
   let userTimeStr = getHourStr(userTime.getUTCHours()) + ':' +
