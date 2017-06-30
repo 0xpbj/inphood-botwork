@@ -54,23 +54,40 @@ function send_notification(userId) {
   // }
   const message = {
     "text":"⏰ Hi! You asked me to remind you to track a meal now.\nTap \'Journal\' to do that:",
-    "quick_replies":[
-      {
-        "content_type":"text",
-        "title":"Journal ✏️",
-        "payload":"journal"
-      },
-      {
-        "content_type":"text",
-        "title":"Knowledge 📚",
-        "payload":"sugar knowledge"
-      },
-      {
-        "content_type":"text",
-        "title":"My Preferences ⚙️",
-        "payload":"preferences"
-      }
-    ]
+//     "quick_replies":[
+//       {
+//         "content_type":"text",
+//         "title":"Journal ✏️",
+//         "payload":"journal"
+//       },
+//       {
+//         "content_type":"text",
+//         "title":"Knowledge 📚",
+//         "payload":"sugar knowledge"
+//       },
+//       {
+//         "content_type":"text",
+//         "title":"My Preferences ⚙️",
+//         "payload":"preferences"
+//       }
+//     ]
+      "buttons":[
+      {
+        "type":"postback",
+        "title":"Journal ✏️",
+        "payload":"journal"
+      },
+      {
+        "type":"postback",
+        "title":"Report ‍💻",
+        "payload":"report"
+      },
+      {
+        "type":"postback",
+        "title":"Settings ⚙️",
+        "payload":"settings"
+      }
+    ]
   }
 
   let options = {
