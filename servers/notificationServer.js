@@ -238,9 +238,7 @@ function scheduleReports() {
               console.log('User ' + userId + ' logged meals today (' +
                           userDate + '). Scheduling a report notification.')
 
-              if (constants.testUsers.includes(userId)) {
-                queue_notification(dbNotQueue, currentTimeUTC, 1, userId, 'report')
-              }
+              queue_notification(dbNotQueue, currentTimeUTC, 1, userId, 'report')
             }
           }
         }
