@@ -76,7 +76,7 @@ exports.bot = function(request, messageText, userId) {
       return fire.findMyFavorites(request.text, userId, date, timestamp)
     }
     else if ((manual || missingUPC) && messageText) {
-      const inputSugar = utils.boundsChecker(messageText)
+      const inputSugar = utils.boundsChecker(messageText, false)
       if (inputSugar === -1) {
         return 'Invalid input. Please enter a valid number!'
       }
@@ -113,6 +113,10 @@ exports.bot = function(request, messageText, userId) {
       }
     }
     else if (weight && messageText) {
+      let check = utils.boundsChecker(messageText, true)
+      if (check == -1) {
+        return 'Invalid input. Please enter a valid number!'
+      }
       return tempRef.child('/preferences/' + date).update({
         weight: messageText
       })
@@ -134,6 +138,10 @@ exports.bot = function(request, messageText, userId) {
       })
     }
     else if (goalWeight && messageText) {
+      let check = utils.boundsChecker(messageText, true)
+      if (check == -1) {
+        return 'Invalid input. Please enter a valid number!'
+      }
       return tempRef.child('/preferences/' + date).update({
         goalWeight: messageText
       })
@@ -155,6 +163,10 @@ exports.bot = function(request, messageText, userId) {
       })
     }
     else if (goalSugar && messageText) {
+      let check = utils.boundsChecker(messageText, false)
+      if (check == -1) {
+        return 'Invalid input. Please enter a valid number!'
+      }
       return tempRef.child('/preferences/' + date).update({
         goalSugar: messageText
       })
@@ -268,9 +280,9 @@ exports.bot = function(request, messageText, userId) {
           })
         }
         case 'custom sugar for food': {
-          return new fbTemplate.Text('What would you like to do next?')
-          .addQuickReply('Different Serving', 'manual sugar track')
-          .addQuickReply('Incorrect Sugar', 'incorrect sugar information')
+          return new fbTemplate.Button('What would you like to do next?')
+          .addButton('Different Serving', 'manual sugar track')
+          .addButton('Incorrect Sugar', 'incorrect sugar information')
           .get()
         }
         case 'incorrect sugar information': {

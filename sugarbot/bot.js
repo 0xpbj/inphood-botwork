@@ -16,7 +16,7 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit']
+const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit', 'start', 'start over']
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
@@ -42,10 +42,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         firebase.auth().signInAnonymously()
       }
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in preferences')
-      return new fbTemplate.Text('What would you like to do?')
-      .addQuickReply('Sugar Goal', 'goalsugar')
-      .addQuickReply('Current Weight', 'weight')
-      .addQuickReply('Weight Goal', 'goalWeight')
+      return new fbTemplate.Button('What would you like to do?')
+      .addButton('Sugar Goal', 'goalsugar')
+      .addButton('Current Weight', 'weight')
+      .addButton('Weight Goal', 'goalWeight')
       .get()
     }
     else if (messageText === 'journal') {
@@ -53,11 +53,11 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         firebase.auth().signInAnonymously()
       }
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in journal')
-      return new fbTemplate.Text('What would you like to do next?')
-      .addQuickReply('Favorites 😍', 'my favorites')
-      .addQuickReply('UPC 🏷', 'analyze upc')
-      .addQuickReply('Description ✏️', 'food question')
-      .addQuickReply('Photo 🥗', 'send food picture')
+      return new fbTemplate.Button('What would you like to do next?')
+      // .addButton('Favorites 😍', 'my favorites')
+      .addButton('UPC Label 🏷', 'analyze upc')
+      .addButton('Description ✏️', 'food question')
+      .addButton('Photo 🥗', 'send food picture')
       .get()  
     }
     else if (messageText === 'knowledge') {
@@ -65,10 +65,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         firebase.auth().signInAnonymously()
       }
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in knowledge')
-      return new fbTemplate.Text('What would you like to know?')
-      .addQuickReply('Facts 🎲', 'random sugar facts')
-      .addQuickReply('Recipes 📅', 'recipe')
-      .addQuickReply('Processed? 🍭', 'Processed Sugar?')
+      return new fbTemplate.Button('What would you like to know?')
+      .addButton('Facts 🎲', 'random sugar facts')
+      .addButton('Recipes 📅', 'recipe')
+      .addButton('Processed? 🍭', 'Processed Sugar?')
       .get()
     }
     else if (messageText === 'random sugar facts') {

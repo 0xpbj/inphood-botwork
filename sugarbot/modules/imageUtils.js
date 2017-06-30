@@ -238,9 +238,9 @@ exports.fdaProcess = function (userId, barcode) {
             .then(() => {
               return [
                 "Looks like you got me...I have no idea what you're eating",
-                new fbTemplate.Text("Would you like to manually enter the sugar amount? We can store it for future use 🙂")
-                .addQuickReply('Yes  ✅', 'manual sugar track with upc')
-                .addQuickReply('No  ❌', 'other options')
+                new fbTemplate.Button("Would you like to manually enter the sugar amount? We can store it for future use 🙂")
+                .addButton('Yes  ✅', 'manual sugar track with upc')
+                .addButton('No  ❌', 'other options')
                 .get()
                 // utils.badBarCode(barcode)
                 // utils.otherOptions(false)
@@ -291,9 +291,9 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
       .catch(() => {
         return tempRef.child('upc').remove()
         .then(() => {
-          return new fbTemplate.Text("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
-          .addQuickReply('Yes  ✅', 'analyze upc')
-          .addQuickReply('No  ❌', 'other options')
+          return new fbTemplate.Button("I couldn't read that barcode. Would you like to try another picture or manually enter the barcode?")
+          .addButton('Yes  ✅', 'analyze upc')
+          .addButton('No  ❌', 'other options')
           .get()
         })
       })
@@ -353,11 +353,7 @@ exports.processLabelImage = function(url, userId, upcFlag, cvFlag) {
     console.log("error: ", err)
     return [
       'Looks like you confused me...can you help me out?',
-      new fbTemplate.Text("Ok, here are your options.")
-      .addQuickReply('Journal ✏️', 'journal')
-      .addQuickReply('Knowledge 📚', 'knowledge')
-      .addQuickReply('Preferences ⚙️', 'preferences')
-      .get()
+      uitls.otherOptions(false)
     ]
   })
 }
