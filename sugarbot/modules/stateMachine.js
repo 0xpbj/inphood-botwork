@@ -58,145 +58,7 @@ exports.bot = function(request, messageText, userId) {
     const date = timeUtils.getUserDateString(timestamp, timezone)
 
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
-    if (sugarCheckerFlag && messageText) {
-      return fire.sugarChecker(messageText, userId)
-    }
-    else if (questionFlag && messageText) {
-      return nutrition.getNutritionix(messageText, userId, timezone)
-    }
-    else if ((upcFlag || cvFlag) && messageAttachments) {
-      const {url} = messageAttachments[0].payload
-      return image.processLabelImage(url, userId, upcFlag, cvFlag)
-    }
-    else if (upcFlag && messageText) {
-      return image.fdaProcess(userId, messageText)
-    }
-    else if (favFlag && messageText) {
-      // return 'adding your favorite: ' + request.text
-      return fire.findMyFavorites(request.text, userId, date, timestamp)
-    }
-    else if ((manual || missingUPC) && messageText) {
-      const inputSugar = utils.boundsChecker(messageText)
-      if (inputSugar === -1) {
-        return 'Invalid input. Please enter a valid number!'
-      }
-      if (manual) {
-        return tempRef.child('/temp/data/manual').remove()
-        .then(() => {
-          return tempRef.child('/temp/data/food').update({
-            sugar: inputSugar
-          })
-          .then(() => {
-            return fire.addSugarToFirebase(userId, date, timestamp)
-          })
-        })
-      }
-      else if (missingUPC) {
-        return tempRef.child("/temp/data/missing/").once("value")
-        .then(tsnapshot => {
-          const barcode = tsnapshot.child('barcode').val()
-          return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
-            sugar: inputSugar
-          })
-          .then(() => {
-            return tempRef.child('/temp/data/missingUPC').remove()
-            .then(() => {
-              return tempRef.child('/temp/data/food').update({
-                sugar: inputSugar
-              })
-              .then(() => {
-                return fire.addSugarToFirebase(userId, date, timestamp)
-              })
-            })
-          })
-        })
-      }
-    }
-    else if (weight && messageText) {
-      return tempRef.child('/preferences/' + date).update({
-        weight: messageText
-      })
-      .then(() => {
-        return tempRef.child('/preferences/').update({
-          currentWeight: messageText
-        })
-        .then(() => {
-          return tempRef.child('/temp/data/preferences/').update({
-            weight: false
-          })
-          .then(() => {
-            return [
-              'Got it! Your weight added: ' + messageText,
-              utils.otherOptions(false)
-            ]
-          })
-        })
-      })
-    }
-    else if (goalWeight && messageText) {
-      return tempRef.child('/preferences/' + date).update({
-        goalWeight: messageText
-      })
-      .then(() => {
-        return tempRef.child('/preferences/').update({
-          currentGoalWeight: messageText
-        })
-        .then(() => {
-          return tempRef.child('/temp/data/preferences/').update({
-            goalWeight: false
-          })
-          .then(() => {
-            return [
-              'Got it! Your goal weight added: ' + messageText,
-              utils.otherOptions(false)
-            ]
-          })
-        })
-      })
-    }
-    else if (goalSugar && messageText) {
-      return tempRef.child('/preferences/' + date).update({
-        goalSugar: messageText
-      })
-      .then(() => {
-        return tempRef.child('/preferences/').update({
-          currentGoalSugar: messageText
-        })
-        .then(() => {
-          return tempRef.child('/temp/data/preferences/').update({
-            goalSugar: false
-          })
-          .then(() => {
-            return [
-              'Got it! Your sugar goal added: ' + messageText,
-              utils.otherOptions(false)
-            ]
-          })
-        })
-      })
-    }
-    else if (cheatDay && messageText) {
-      return tempRef.child('/preferences/' + date).update({
-        cheatDay: messageText
-      })
-      .then(() => {
-        return tempRef.child('/preferences/').update({
-          currentCheatDay: messageText
-        })
-        .then(() => {
-          return tempRef.child('/temp/data/cheatDay').update({
-            flag: false
-          })
-          .then(() => {
-            return [
-              'Got it! Your cheat day updated: ' + messageText,
-              utils.otherOptions(false)
-            ]
-          })
-        })
-      })
-    }
-    else if (messageText) {
+    if (messageText) {
       switch (messageText) {
         case 'debug_user_time': {
           if (isTestBot || constants.testUsers.includes(userId)) {
@@ -230,6 +92,7 @@ exports.bot = function(request, messageText, userId) {
         case 'upc label':
         case 'upc':
         case 'manual upc code entry':
+        case 'ingredient check':
         case 'analyze upc': {
           return tempRef.child('/temp/data/upc').update({
             flag: true
@@ -268,9 +131,9 @@ exports.bot = function(request, messageText, userId) {
           })
         }
         case 'custom sugar for food': {
-          return new fbTemplate.Text('What would you like to do next?')
-          .addQuickReply('Different Serving', 'manual sugar track')
-          .addQuickReply('Incorrect Sugar', 'incorrect sugar information')
+          return new fbTemplate.Button('What would you like to do next?')
+          .addButton('Different Serving', 'manual sugar track')
+          .addButton('Incorrect Sugar', 'incorrect sugar information')
           .get()
         }
         case 'incorrect sugar information': {
@@ -302,7 +165,14 @@ exports.bot = function(request, messageText, userId) {
             flag: true
           })
           .then(() => {
-            return 'Ok, please tell me what you ate or drank'
+            let ret = 'Ok, please tell me what you ate or drank.'
+            if (!favorites) {
+              ret += '\n Here are some examples phrases I understand.: \
+              \n  1.)  I had two eggs, sausage, toast \
+              \n  2.)  peanut butter and jelly, milk \
+              \n  3.)  how much sugar is in coffee?'
+            }
+            return ret
           })
         }
         case 'send food picture':
@@ -501,7 +371,157 @@ exports.bot = function(request, messageText, userId) {
           })
         }
         default: {
-          if (snapshot.child('/temp/data/food').val()) {
+          if (sugarCheckerFlag && messageText) {
+            return fire.sugarChecker(messageText, userId)
+          }
+          else if (questionFlag && messageText) {
+            return nutrition.getNutritionix(messageText, userId, timezone)
+          }
+          else if ((upcFlag || cvFlag) && messageAttachments) {
+            const {url} = messageAttachments[0].payload
+            return image.processLabelImage(url, userId, upcFlag, cvFlag)
+          }
+          else if (upcFlag && messageText) {
+            return image.fdaProcess(userId, messageText)
+          }
+          else if (favFlag && messageText) {
+            // return 'adding your favorite: ' + request.text
+            return fire.findMyFavorites(request.text, userId, date, timestamp)
+          }
+          else if ((manual || missingUPC) && messageText) {
+            const inputSugar = utils.boundsChecker(messageText, false)
+            if (inputSugar === -1) {
+              return 'Invalid input. Please enter a valid number!'
+            }
+            if (manual) {
+              return tempRef.child('/temp/data/manual').remove()
+              .then(() => {
+                return tempRef.child('/temp/data/food').update({
+                  sugar: inputSugar
+                })
+                .then(() => {
+                  return fire.addSugarToFirebase(userId, date, timestamp)
+                })
+              })
+            }
+            else if (missingUPC) {
+              return tempRef.child("/temp/data/missing/").once("value")
+              .then(tsnapshot => {
+                const barcode = tsnapshot.child('barcode').val()
+                return firebase.database().ref("/global/sugarinfoai/missing/" + barcode).update({
+                  sugar: inputSugar
+                })
+                .then(() => {
+                  return tempRef.child('/temp/data/missingUPC').remove()
+                  .then(() => {
+                    return tempRef.child('/temp/data/food').update({
+                      sugar: inputSugar
+                    })
+                    .then(() => {
+                      return fire.addSugarToFirebase(userId, date, timestamp)
+                    })
+                  })
+                })
+              })
+            }
+          }
+          else if (weight && messageText) {
+            let check = utils.boundsChecker(messageText, true)
+            if (check == -1) {
+              return 'Invalid input. Please enter a valid number!'
+            }
+            return tempRef.child('/preferences/' + date).update({
+              weight: messageText
+            })
+            .then(() => {
+              return tempRef.child('/preferences/').update({
+                currentWeight: messageText
+              })
+              .then(() => {
+                return tempRef.child('/temp/data/preferences/').update({
+                  weight: false
+                })
+                .then(() => {
+                  return [
+                    'Got it! Your weight added: ' + messageText,
+                    utils.otherOptions(false)
+                  ]
+                })
+              })
+            })
+          }
+          else if (goalWeight && messageText) {
+            let check = utils.boundsChecker(messageText, true)
+            if (check == -1) {
+              return 'Invalid input. Please enter a valid number!'
+            }
+            return tempRef.child('/preferences/' + date).update({
+              goalWeight: messageText
+            })
+            .then(() => {
+              return tempRef.child('/preferences/').update({
+                currentGoalWeight: messageText
+              })
+              .then(() => {
+                return tempRef.child('/temp/data/preferences/').update({
+                  goalWeight: false
+                })
+                .then(() => {
+                  return [
+                    'Got it! Your goal weight added: ' + messageText,
+                    utils.otherOptions(false)
+                  ]
+                })
+              })
+            })
+          }
+          else if (goalSugar && messageText) {
+            let check = utils.boundsChecker(messageText, false)
+            if (check == -1) {
+              return 'Invalid input. Please enter a valid number!'
+            }
+            return tempRef.child('/preferences/' + date).update({
+              goalSugar: messageText
+            })
+            .then(() => {
+              return tempRef.child('/preferences/').update({
+                currentGoalSugar: messageText
+              })
+              .then(() => {
+                return tempRef.child('/temp/data/preferences/').update({
+                  goalSugar: false
+                })
+                .then(() => {
+                  return [
+                    'Got it! Your sugar goal added: ' + messageText,
+                    utils.otherOptions(false)
+                  ]
+                })
+              })
+            })
+          }
+          else if (cheatDay && messageText) {
+            return tempRef.child('/preferences/' + date).update({
+              cheatDay: messageText
+            })
+            .then(() => {
+              return tempRef.child('/preferences/').update({
+                currentCheatDay: messageText
+              })
+              .then(() => {
+                return tempRef.child('/temp/data/cheatDay').update({
+                  flag: false
+                })
+                .then(() => {
+                  return [
+                    'Got it! Your cheat day updated: ' + messageText,
+                    utils.otherOptions(false)
+                  ]
+                })
+              })
+            })
+          }
+          else if (snapshot.child('/temp/data/food').val()) {
             const sentiment = require('sentiment');
             const r1 = sentiment(messageText);
             if (r1) {

@@ -4,12 +4,18 @@ const sugarUtils = require('./sugarUtils.js')
 const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 
-exports.boundsChecker = function(input) {
+exports.boundsChecker = function(input, weight) {
   let num = input
   if (typeof(input) === "string") {
     num = parseInt(input)
   }
-  if (num > -1 && num < 150) {
+  if (weight) {
+    if (num > 20 && num < 400) {
+      return num
+    }
+    return -1
+  }
+  else if (num > -1 && num < 150) {
     return num
   }
   return -1
@@ -104,24 +110,24 @@ exports.otherOptions = function(option) {
   if (option === true) {
     return [
       "Welcome to sugarinfoAI! I'm here to help you understand sugar 🤓",
-      new fbTemplate.Text("Here are your options")
-        // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-        .addQuickReply('Journal ✏️', 'journal')
-        // .addQuickReply('Send food image 🥗', 'send food picture')
-        .addQuickReply('Knowledge 📚', 'knowledge')
-        .addQuickReply('Report 💻', 'report')
-        .addQuickReply('Preferences ⚙️', 'preferences')
+      new fbTemplate.Button("Here are your options")
+        // .addButton('Analyze UPC Label 🔬', 'analyze nutrition')
+        .addButton('Journal ✏️', 'journal')
+        // .addButton('Send food image 🥗', 'send food picture')
+        // .addButton('Knowledge 📚', 'knowledge')
+        .addButton('Report 💻', 'report')
+        .addButton('Settings ⚙️', 'settings')
         .get()
     ]
   }
   else {
-    return new fbTemplate.Text('What would you like to do next?')
-      // .addQuickReply('Analyze UPC Label 🔬', 'analyze nutrition')
-      .addQuickReply('Journal ✏️', 'journal')
-      // .addQuickReply('Send food image 🥗', 'send food picture')
-      .addQuickReply('Knowledge 📚', 'knowledge')
-        .addQuickReply('Report ‍💻', 'report')
-      .addQuickReply('Preferences ⚙️', 'preferences')
+    return new fbTemplate.Button('What would you like to do next?')
+      // .addButton('Analyze UPC Label 🔬', 'analyze nutrition')
+      .addButton('Journal ✏️', 'journal')
+      // .addButton('Send food image 🥗', 'send food picture')
+      // .addButton('Knowledge 📚', 'knowledge')
+      .addButton('Report ‍💻', 'report')
+      .addButton('Settings ⚙️', 'settings')
       .get();
   }
 }
@@ -243,38 +249,38 @@ exports.getGifUrl = function(number) {
 }
 
 exports.sendReminder = function() {
-  return new fbTemplate.Text('When should I remind you to track your next meal?')
-  .addQuickReply('1 hour', 'time1')
-  .addQuickReply('3 hours', 'time3')
-  .addQuickReply('5 hours', 'time5')
-  .addQuickReply('Tomorrow', 'timeTomorrow')
-  .addQuickReply("Don't ask", 'notime')
+  return new fbTemplate.Button('When should I remind you to track your next meal?')
+  // .addButton('1 hour', 'time1')
+  .addButton('3 hours', 'time3')
+  .addButton('5 hours', 'time5')
+  .addButton('Tomorrow', 'timeTomorrow')
+  // .addButton("Don't ask", 'notime')
   .get()
 }
 
 exports.trackMood = function() {
-  return new fbTemplate.Text('Would you like to record your mood?')
-  .addQuickReply('🙂', 'positive mood')
-  .addQuickReply('😐', 'neutral mood')
-  .addQuickReply('🙁', 'negative mood')
-  .addQuickReply('Not now  ❌', 'not now mood')
-//   .addQuickReply('Don\'t ask again', 'don\'t ask mood again')
+  return new fbTemplate.Button('Would you like to record your mood?')
+  .addButton('🙂', 'positive mood')
+  .addButton('😐', 'neutral mood')
+  .addButton('🙁', 'negative mood')
+  .addButton('Not now  ❌', 'not now mood')
+//   .addButton('Don\'t ask again', 'don\'t ask mood again')
   .get();
 }
 
 exports.trackAlertness = function() {
-  return new fbTemplate.Text('Would you like to record your alertness?')
-  .addQuickReply('😳', 'very alert')
-  .addQuickReply('😐', 'typical alertness')
-  .addQuickReply('😴', 'drowsy')
-  .addQuickReply('Not now  ❌', 'not now alertness')
-//   .addQuickReply('Don\'t ask again', 'do not ask alertness again')
+  return new fbTemplate.Button('Would you like to record your alertness?')
+  .addButton('😳', 'very alert')
+  .addButton('😐', 'typical alertness')
+  .addButton('😴', 'drowsy')
+  .addButton('Not now  ❌', 'not now alertness')
+//   .addButton('Don\'t ask again', 'do not ask alertness again')
   .get();
 }
 
 exports.parseMyFavorites = function(favorites) {
   let favArr = []
-  let myFavs = new fbTemplate.Text('Here are your most commonly added meals')
+  let myFavs = new fbTemplate.Button('Here are your most commonly added meals')
   for (let object in favorites) {
     let length = Object.keys(favorites[object].date).length
     favArr.push({length, object})
@@ -291,14 +297,14 @@ exports.parseMyFavorites = function(favorites) {
   // console.log('Post sorted', revArr)
   let i = 0
   for (let it of revArr) {
-    if (i === 4)
+    if (i === 3)
       break
     i++
     console.log(it.object.toLowerCase())
     myFavs
-    .addQuickReply(it.object.toLowerCase(), it.object)
+    .addButton(it.object.toLowerCase(), it.object)
   }
-  myFavs.addQuickReply('Cancel', 'back')
+  // myFavs.addButton('Cancel', 'back')
   return myFavs.get()
   // console.log('\n\n\n\n')
   // console.log('Pre-Sorted', favArr)
