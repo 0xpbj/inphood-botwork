@@ -20,6 +20,7 @@
     "claudia-bot-builder": "^2.15.0",
     "fast-levenshtein": "^2.0.6",
     "firebase": "^4.1.2",
+    "huh": "^2.0.1",
     "porter-stemmer": "^0.9.1",
     "quagga": "^0.11.6",
     "request": "^2.81.0",

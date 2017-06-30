@@ -2,6 +2,7 @@ const botBuilder = require('claudia-bot-builder')
 const facebookMachine = require('./modules/stateMachine.js')
 const fbTemplate = botBuilder.fbTemplate
 const utils = require('./modules/utils.js')
+const fire = require('./modules/firebaseUtils.js')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -16,7 +17,7 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(fbConfig)
 }
 
-const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'get started', 'back', 'cancel', 'clear', 'exit', 'start', 'start over']
+const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'back', 'cancel', 'clear', 'exit', 'start']
 
 module.exports = botBuilder(function (request, originalApiRequest) {
   // return 'hello world'
@@ -44,7 +45,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in preferences')
       return new fbTemplate.Button('What would you like to do?')
       .addButton('Sugar Goal ⬜️', 'goalsugar')
-      .addButton('Current Weight 🥋', 'weight')
+      .addButton('Current Weight ⏱', 'weight')
       .addButton('Weight Goal 🏆', 'goalWeight')
       .get()
     }
@@ -53,10 +54,10 @@ module.exports = botBuilder(function (request, originalApiRequest) {
         firebase.auth().signInAnonymously()
       }
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in journal')
-      return new fbTemplate.Button('What would you like to do next?')
+      return new fbTemplate.Button('I\'m all ears! How would you like to enter your meal?')
       // .addButton('Favorites 😍', 'my favorites')
-      .addButton('Describe Food ✏️', 'food question')
-      .addButton('Ingredient Check 🔬', 'analyze upc')
+      .addButton('Describe Food ⌨️', 'food question')
+      .addButton('Scan UPC Code 🔬', 'analyze upc')
       // .addButton('Photo 🥗', 'send food picture')
       .get()  
     }

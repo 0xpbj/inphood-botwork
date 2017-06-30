@@ -50,27 +50,6 @@ exports.findMyFavorites = function(favoriteMeal, userId, date, fulldate) {
         ingredientsSugarsCaps
       })
       .then(() => {
-        // if (ingredientsSugarsCaps !== '') {
-        //   return [
-        //     sugarPerServingStr,
-        //     'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-        //     'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
-        //     new fbTemplate
-        //     .Image(utils.getGifUrl(sugarPerServing))
-        //     .get(),
-        //     exports.trackSugar()
-        //   ]
-        // }
-        // else {
-        //   return [
-        //     sugarPerServingStr,
-        //     'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
-        //     new fbTemplate
-        //     .Image(utils.getGifUrl(sugarPerServing))
-        //     .get(),
-        //     exports.trackSugar()
-        //   ]
-        // }
         return exports.addSugarToFirebase(userId, date, fulldate)
       })
     })
@@ -94,7 +73,7 @@ exports.trackUserProfile = function(userId) {
   const request = require('request-promise')
   return request(fbOptions)
   .then(result => {
-    // console.log('Result', result)
+    console.log('User Data Fetched', result)
     const data = result.body
     // console.log('Data', data)
     const {first_name, last_name, profile_pic, locale, timezone, gender} = data
@@ -148,7 +127,7 @@ exports.calculateDailyTracking = function(weight, sugar, userId, goalSugar) {
 
 function subSlashes( str ) {
   if (str) {
-    return str.replace(/[\/]/g, '_');
+    return str.replace(/[\/\.$#\[\]]/g, '_');
   }
   return ''
 }
@@ -186,7 +165,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     if (!val)
       val = 0
     if (!goalSugar)
-      goalSugar = 40
+      goalSugar = 36
     var newVal = parseInt(val) + parseInt(sugar)
     console.log('+++++++++++++++++++++', cleanText)
     if (foodName === 'missing upc' || !cleanText) {
@@ -195,13 +174,24 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
         return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data/').remove()
         .then(() => {
           let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
+          console.log('  adding report request to firebase')
+          const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
+          const dbReportQueueRequest = dbReportQueue.push()
+          dbReportQueueRequest.set(reportRequest)
           return [
-            'Added ' + sugar + 'g to your journal',
-            'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
-            "Here's your daily intake",
-            track,
-            utils.sendReminder()
+            // 'Added ' + sugar + 'g to your journal',
+            'Okay, I\'ve updated your journal and see that you\'ve had about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g) of your daily allowance (' + goalSugar + 'g)',
+            // 'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
+            // "Here's your daily intake",
+            // 'With sugar less is more!',
+            // 'The green cube(s) below represent how much of your sugar goal (' + goalSugar + ') you\'ve had today.',
+            // track,
+            // new fbTemplate.Button('You can check your meal report here')
+            // .addButton('Report 💻', 'report')
+            // .get(),
+            // utils.sendReminder()
             // utils.trackAlertness()
+            // 'You can check your sugar report below.'
           ]
         })
       })
@@ -213,6 +203,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
     return firebase.database().ref('/global/sugarinfoai/' + userId + '/sugarIntake/' + date + '/dailyTotal/').update({ sugar: newVal })
     .then(() => {
       return firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + cleanPath).update({ 
+        cleanText,
         sugar,
         sugarArr,
         sugarPerServingStr,
@@ -226,14 +217,31 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
         .then(() => {
           return firebase.database().ref('/global/sugarinfoai/' + userId +'/temp/data').remove()
           .then(() => {
+            const reportRequest = {
+              reportType: 'dailySummary',
+              userId: userId,
+              userTimeStamp: fulldate
+            }
+            console.log('  adding report request to firebase')
+            const dbReportQueue = firebase.database().ref("/global/sugarinfoai/reportQueue")
+            const dbReportQueueRequest = dbReportQueue.push()
+            dbReportQueueRequest.set(reportRequest)
             let track = exports.calculateDailyTracking(weight, newVal, userId, goalSugar)
             return [
-              'Added ' + sugar + 'g to your journal',
-              'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
-              "Here's your daily intake",
-              track,
-              utils.sendReminder()
+              // 'Added ' + sugar + 'g to your journal',
+              'Okay, I\'ve updated your journal and see that you\'ve had about ' + Math.ceil(sugar*100/goalSugar) 
+               + '% (' + sugar + 'g) of your daily allowance (' + goalSugar + 'g)',
+              // 'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
+              // "Here's your daily intake",
+              // 'With sugar less is more!',
+              // 'The green cube(s) below represent how much of your sugar goal (' + goalSugar + ') you\'ve had today.',
+              // track,
+              // new fbTemplate.Button('You can check your meal report here')
+              // .addButton('Report 💻', 'report')
+              // .get(),
+              // utils.sendReminder()
               // utils.trackAlertness()
+              // 'You can check your sugar report below.'
             ]
           })
         })

@@ -11,6 +11,7 @@ const botBuilder = require('claudia-bot-builder')
 const fbTemplate = botBuilder.fbTemplate
 
 const requestPromise = require('request-promise')
+const sentiment = require('sentiment');
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -43,13 +44,14 @@ exports.bot = function(request, messageText, userId) {
     const myCheatDay = snapshot.child('/preferences/currentCheatDay').val()
     const favFlag = snapshot.child('/temp/data/favorites/flag').val()
     const favorites = snapshot.child('/myfoods/').val()
+    const foodData = snapshot.child('/temp/data/food').val()
 
     let timezone = snapshot.child('/profile/timezone').val()
     let first_name = snapshot.child('/profile/first_name').val()
     // should only happens once...unless user updates profile
-    if (!first_name && !isTestBot) {
-      fire.trackUserProfile(userId)
-    }
+    // if (!first_name && !isTestBot) {
+    //   fire.trackUserProfile(userId)
+    // }
     // defaults to PST
     if (!timezone) {
       timezone = -7
@@ -60,6 +62,35 @@ exports.bot = function(request, messageText, userId) {
     var messageAttachments = (request.originalRequest && request.originalRequest.message) ? request.originalRequest.message.attachments : null
     if (messageText) {
       switch (messageText) {
+        case 'start over':
+        case 'get started': {
+          return fire.trackUserProfile(userId)
+          .then(() => {
+            return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data").remove()
+            .then(() => {
+              return firebase.database().ref("/global/sugarinfoai/" + userId + "/profile/").once("value")
+              .then(function(snapshot) {
+                let intro = ''
+                if (snapshot.child('first_name').exists()) {
+                  intro = 'Hi ' + snapshot.child('first_name').val() + ', I’m sugarinfoAI! I can help you understand how much sugar you are eating and help you bring it within recommended limits. Would you like that?'
+                }
+                else {
+                  intro = 'Hi, I’m sugarinfoAI! I can help you understand how much sugar you are eating and help you bring it within recommended limits. Would you like that?'
+                }
+                return new fbTemplate.Button(intro)
+                .addButton('Hmm, ok', 'food question')
+                .addButton('Maybe later', 'say adios')
+                .get()
+              })
+            })
+          })
+        }
+        case 'say adios': {
+          return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data").remove()
+          .then(() => {
+            return 'No problem! If you have any questions later just type: help'
+          })
+        }
         case 'debug_user_time': {
           if (isTestBot || constants.testUsers.includes(userId)) {
             console.log('REQUEST -----------------------------------------')
@@ -131,8 +162,7 @@ exports.bot = function(request, messageText, userId) {
           })
         }
         case 'custom sugar for food': {
-          let food = snapshot.child('/temp/data/food').val()
-          if (!food) {
+          if (!foodData) {
             return 'Please add food to your journal before editing sugar values'
           }
           return new fbTemplate.Button('What would you like to do next?')
@@ -165,17 +195,34 @@ exports.bot = function(request, messageText, userId) {
         }
         case 'food question':
         case 'question': {
+          const timeUser = timeUtils.getUserTimeObj(Date.now(), timezone)
+          let mealInfo = '? (e.g: almonds and cranberries)'
+          let mealType = 'snack'
+          const {hour} = timeUser
+          if (hour > 4 && hour < 13) {
+            mealType = 'breakfast'
+            mealInfo = ' this morning? (e.g: I had two eggs, avocado, and toast)'
+          }
+          else if (hour > 12 && hour < 18) {
+            mealType = 'lunch'
+            mealInfo = ' this afternoon? (e.g: chicken sandwich and cola)'
+          }
+          else if (hour > 17 && hour < 23) {
+            mealType = 'dinner'
+            mealInfo = ' this evening? (e.g: Kale, spinach, tomatoes, cheese, and dressing)'
+          }
           return tempRef.child('/temp/data/question').update({
-            flag: true
+            flag: true,
+            mealType
           })
           .then(() => {
-            let ret = 'Ok, please tell me what you ate or drank.'
-            if (!favorites) {
-              ret += '\n Here are some examples phrases I understand.: \
-              \n  1.)  I had two eggs, sausage, toast \
-              \n  2.)  peanut butter and jelly, milk \
-              \n  3.)  how much sugar is in coffee?'
-            }
+            let ret = 'Great! Tell me what you ate' + mealInfo
+            // if (!favorites) {
+            //   ret += '\n Here are some examples phrases I understand.: \
+            //   \n  1.)  I had two eggs, sausage, toast \
+            //   \n  2.)  peanut butter and jelly, milk \
+            //   \n  3.)  how much sugar is in coffee?'
+            // }
             return ret
           })
         }
@@ -379,11 +426,7 @@ exports.bot = function(request, messageText, userId) {
             return fire.sugarChecker(messageText, userId)
           }
           else if (questionFlag && messageText) {
-            return nutrition.getNutritionix(messageText, userId, timezone)
-          }
-          else if ((upcFlag || cvFlag) && messageAttachments) {
-            const {url} = messageAttachments[0].payload
-            return image.processLabelImage(url, userId, upcFlag, cvFlag)
+            return nutrition.getNutritionix(messageText, userId, timezone, false)
           }
           else if (upcFlag && messageText) {
             return image.fdaProcess(userId, messageText)
@@ -526,7 +569,6 @@ exports.bot = function(request, messageText, userId) {
             })
           }
           else if (snapshot.child('/temp/data/food').val()) {
-            const sentiment = require('sentiment');
             const r1 = sentiment(messageText);
             if (r1) {
               return fire.addSugarToFirebase(userId, date, timestamp)
@@ -538,7 +580,15 @@ exports.bot = function(request, messageText, userId) {
               })
             }
           }
-          return nutrition.getNutritionix(messageText, userId, timezone)
+          // else if (manual) {
+          //   const r1 = sentiment(messageText);
+          //   if (r1) {
+          //   }
+          //   else {
+
+          //   }
+          // }
+          return nutrition.getNutritionix(messageText, userId, timezone, true)
           // return [
           //   new fbTemplate
           //   .Image('http://i.imgur.com/uhHyYvP.gif')
@@ -547,6 +597,10 @@ exports.bot = function(request, messageText, userId) {
           // ]
         }
       }
+    }
+    else if ((upcFlag || cvFlag) && messageAttachments) {
+      const {url} = messageAttachments[0].payload
+      return image.processLabelImage(url, userId, upcFlag, cvFlag)
     }
   })
 }

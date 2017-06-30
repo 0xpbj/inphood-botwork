@@ -109,7 +109,7 @@ exports.getUsdaReport = function(ndbno) {
 exports.otherOptions = function(option) {
   if (option === true) {
     return [
-      "Welcome to sugarinfoAI! I'm here to help you understand sugar 🤓",
+      "Welcome back! I'm here to help you understand sugar 🤓",
       new fbTemplate.Button("Here are your options")
         // .addButton('Analyze UPC Label 🔬', 'analyze nutrition')
         .addButton('Journal ✏️', 'journal')
@@ -249,7 +249,7 @@ exports.getGifUrl = function(number) {
 }
 
 exports.sendReminder = function() {
-  return new fbTemplate.Button('When should I remind you to track your next meal?')
+  return new fbTemplate.Button('We can also help remind you to track again later')
   // .addButton('1 hour', 'time1')
   .addButton('3 hours', 'time3')
   .addButton('5 hours', 'time5')
@@ -300,9 +300,10 @@ exports.parseMyFavorites = function(favorites) {
     if (i === 3)
       break
     i++
-    console.log(it.object.toLowerCase())
+    console.log(it.object)
+    let name = it.object.cleanText ? it.object.cleanText : it.object
     myFavs
-    .addButton(it.object.toLowerCase(), it.object)
+    .addButton(name.toLowerCase(), it.object)
   }
   // myFavs.addButton('Cancel', 'back')
   return myFavs.get()

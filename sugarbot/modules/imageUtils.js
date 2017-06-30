@@ -79,7 +79,8 @@ exports.fdaProcess = function (userId, barcode) {
               return [
                 sugarPerServingStr + '(Source: https://ndb.nal.usda.gov/ndb/search/list?qlookup=' + barcode + ')',
                 'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-                'This is what ' + sugar +'g of sugar looks like approximately.',
+                // 'This is what ' + sugar +'g of sugar looks like approximately.',
+                'This is what that much sugar looks like',
                 new fbTemplate
                 .Image(utils.getGifUrl(sugar))
                 .get(),
@@ -167,7 +168,8 @@ exports.fdaProcess = function (userId, barcode) {
             return [
               sugarPerServingStr,
               'Ingredients (sugars in caps): ' + ingredientsSugarsCaps,
-              'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+              // 'This is what ' + sugarPerServing +'g of sugar looks like approximately.',
+              'This is what that much sugar looks like',
               new fbTemplate
               .Image(utils.getGifUrl(sugarPerServing))
               .get(),
@@ -210,7 +212,8 @@ exports.fdaProcess = function (userId, barcode) {
             .then(() => {
               if (sugar !== 0) {
                 return [
-                  'This is what ' + sugar +'g of sugar looks like approximately.',
+                  // 'This is what ' + sugar +'g of sugar looks like approximately.',
+                  'This is what that much sugar looks like',
                   new fbTemplate
                   .Image(utils.getGifUrl(sugar))
                   .get(),
