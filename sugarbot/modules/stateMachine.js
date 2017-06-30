@@ -131,6 +131,10 @@ exports.bot = function(request, messageText, userId) {
           })
         }
         case 'custom sugar for food': {
+          let food = snapshot.child('/temp/data/food').val()
+          if (!food) {
+            return 'Please add food to your journal before editing sugar values'
+          }
           return new fbTemplate.Button('What would you like to do next?')
           .addButton('Different Serving', 'manual sugar track')
           .addButton('Incorrect Sugar', 'incorrect sugar information')
