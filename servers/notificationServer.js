@@ -211,12 +211,12 @@ function scheduleReports() {
   const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
   const dbNotQueue = dbSugarInfo.child('notification_queue')
 
-  const currentTimeUTC = Date.now()
-
   return dbSugarInfo.once('value',
     function(snapshot) {
       const sugarInfoAI = snapshot.val()
       for (let userId in sugarInfoAI) {
+        const currentTimeUTC = Date.now()
+
         if (testMode && !constants.testUsers.includes(userId)) {
           continue
         }
@@ -228,10 +228,10 @@ function scheduleReports() {
 
           const timeZone = userSugarInfoAI.profile.timezone
           const userTimeObj = timeUtils.getUserTimeObj(currentTimeUTC, timeZone)
-          
+
           // If it's 19:xx local time, then if the user tracked something, schedule
           // a report notification for them in an hour
-          //          
+          //
           if (userTimeObj.hour === 19) {
             const userDate = timeUtils.getUserDateString(currentTimeUTC, timeZone)
             if (userDate in userSugarInfoAI.sugarIntake) {
