@@ -21,10 +21,10 @@ exports.trackSugar = function() {
   if (cheatDay == 0) {
     return 'Today is your cheat day! Enjoy responsibly 😇'
   }
-  return new fbTemplate.Text('Would you like to add it to your journal?')
-  .addQuickReply('Yes  ✅', 'add sugar')
-  .addQuickReply('Custom 🛠', 'custom sugar for food')
-  .addQuickReply('No  ❌', 'remove temp food data')
+  return new fbTemplate.Button('Would you like to add it to your journal?')
+  .addButton('Yes  ✅', 'add sugar')
+  .addButton('No  ❌', 'remove temp food data')
+  .addButton('Custom 🛠', 'custom sugar for food')
   .get()
 }
 
