@@ -116,7 +116,7 @@ exports.otherOptions = function(option) {
         // .addButton('Send food image 🥗', 'send food picture')
         // .addButton('Knowledge 📚', 'knowledge')
         .addButton('Report 💻', 'report')
-        .addButton('Preferences ⚙️', 'preferences')
+        .addButton('Settings ⚙️', 'settings')
         .get()
     ]
   }
@@ -126,8 +126,8 @@ exports.otherOptions = function(option) {
       .addButton('Journal ✏️', 'journal')
       // .addButton('Send food image 🥗', 'send food picture')
       // .addButton('Knowledge 📚', 'knowledge')
-        .addButton('Report ‍💻', 'report')
-      .addButton('Preferences ⚙️', 'preferences')
+      .addButton('Report ‍💻', 'report')
+      .addButton('Settings ⚙️', 'settings')
       .get();
   }
 }

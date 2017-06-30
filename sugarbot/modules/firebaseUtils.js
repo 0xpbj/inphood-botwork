@@ -23,8 +23,8 @@ exports.trackSugar = function() {
   }
   return new fbTemplate.Button('Would you like to add it to your journal?')
   .addButton('Yes  ✅', 'add sugar')
-  .addButton('Custom 🛠', 'custom sugar for food')
   .addButton('No  ❌', 'remove temp food data')
+  .addButton('Custom 🛠', 'custom sugar for food')
   .get()
 }
 

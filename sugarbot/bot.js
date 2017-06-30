@@ -37,15 +37,15 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       }
       return utils.otherOptions(true)
     }
-    else if (messageText ==='preferences') {
+    else if (messageText ==='settings') {
       if (firebase.auth().currentUser === null) {
         firebase.auth().signInAnonymously()
       }
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in preferences')
       return new fbTemplate.Button('What would you like to do?')
-      .addButton('Sugar Goal', 'goalsugar')
-      .addButton('Current Weight', 'weight')
-      .addButton('Weight Goal', 'goalWeight')
+      .addButton('Sugar Goal ⬜️', 'goalsugar')
+      .addButton('Current Weight 🥋', 'weight')
+      .addButton('Weight Goal 🏆', 'goalWeight')
       .get()
     }
     else if (messageText === 'journal') {
@@ -55,9 +55,9 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in journal')
       return new fbTemplate.Button('What would you like to do next?')
       // .addButton('Favorites 😍', 'my favorites')
-      .addButton('UPC Label 🏷', 'analyze upc')
-      .addButton('Description ✏️', 'food question')
-      .addButton('Photo 🥗', 'send food picture')
+      .addButton('Describe Food ✏️', 'food question')
+      .addButton('Ingredient Check 🔬', 'analyze upc')
+      // .addButton('Photo 🥗', 'send food picture')
       .get()  
     }
     else if (messageText === 'knowledge') {
