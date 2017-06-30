@@ -5,7 +5,7 @@ const requestPromise = require('request-promise')
 const constants = require('../sugarbot/modules/constants.js')
 const timeUtils = require('../sugarbot/modules/timeUtils.js')
 
-const testMode = true
+const testMode = false
 
 // Setting this up as standard firebase client:
 //   - https://firebase.google.com/docs/web/setup
@@ -194,12 +194,12 @@ function scheduleReports() {
   const dbSugarInfo = firebase.database().ref('/global/sugarinfoai')
   const dbNotQueue = dbSugarInfo.child('notification_queue')
 
-  const currentTimeUTC = Date.now()
-
   return dbSugarInfo.once('value',
     function(snapshot) {
       const sugarInfoAI = snapshot.val()
       for (let userId in sugarInfoAI) {
+        const currentTimeUTC = Date.now()
+
         if (testMode && !constants.testUsers.includes(userId)) {
           continue
         }
@@ -215,10 +215,7 @@ function scheduleReports() {
           // If it's 19:xx local time, then if the user tracked something, schedule
           // a report notification for them in an hour
           //
-
-          // TODO:
-          // if (userTimeObj.hour === 19) {
-          if (userTimeObj.hour === 21) {
+          if (userTimeObj.hour === 19) {
             const userDate = timeUtils.getUserDateString(currentTimeUTC, timeZone)
             if (userDate in userSugarInfoAI.sugarIntake) {
               console.log('User ' + userId + ' logged meals today (' +
@@ -241,8 +238,7 @@ app.listen(3000, function () {
 
   // Start a separate cron like task here that schedules 'report' notifications
   // automatically:
-  // const reportJob = schedule.scheduleJob('45 * * * *', scheduleReports)
-  const reportJob = schedule.scheduleJob('26 * * * *', scheduleReports)
+  const reportJob = schedule.scheduleJob('45 * * * *', scheduleReports)
 
   // This code listens to the 'reminders' child of our user's firebase data. If
   // a reminder appears, it creates an entry for that user in our notification_queue
