@@ -40,7 +40,7 @@ exports.bot = function(request, messageText, userId) {
     const goalSugar = snapshot.child('/temp/data/preferences/goalSugar').val()
     const weight = snapshot.child('/temp/data/preferences/weight').val()
     const goalWeight = snapshot.child('/temp/data/preferences/goalWeight').val()
-    const cheatDay = snapshot.child('/temp/data/cheatDay/flag').val()
+    // const cheatDay = snapshot.child('/temp/data/cheatDay/flag').val()
     const myCheatDay = snapshot.child('/preferences/currentCheatDay').val()
     const favFlag = snapshot.child('/temp/data/favorites/flag').val()
     const favorites = snapshot.child('/myfoods/').val()
@@ -78,7 +78,7 @@ exports.bot = function(request, messageText, userId) {
                   intro = 'Hi, I’m sugarinfoAI! I can help you understand how much sugar you are eating and help you bring it within recommended limits. Would you like that?'
                 }
                 return new fbTemplate.Button(intro)
-                .addButton('Hmm, ok', 'food question')
+                .addButton('Sure, let\'s go', 'food question')
                 .addButton('Maybe later', 'say adios')
                 .get()
               })
@@ -137,14 +137,14 @@ exports.bot = function(request, messageText, userId) {
             ]
           })
         }
-        case 'my cheat day': {
-          return tempRef.child('/temp/data/cheatDay').update({
-            flag: true
-          })
-          .then(() => {
-            return "Please send which day you'd like to be your cheatday: (Ex: Saturday)"
-          })
-        }
+        // case 'my cheat day': {
+        //   return tempRef.child('/temp/data/cheatDay').update({
+        //     flag: true
+        //   })
+        //   .then(() => {
+        //     return "Please send which day you'd like to be your cheatday: (Ex: Saturday)"
+        //   })
+        // }
         case 'manual sugar track with upc': {
           return tempRef.child('/temp/data/missingUPC').update({
             flag: true
@@ -547,27 +547,27 @@ exports.bot = function(request, messageText, userId) {
               })
             })
           }
-          else if (cheatDay && messageText) {
-            return tempRef.child('/preferences/' + date).update({
-              cheatDay: messageText
-            })
-            .then(() => {
-              return tempRef.child('/preferences/').update({
-                currentCheatDay: messageText
-              })
-              .then(() => {
-                return tempRef.child('/temp/data/cheatDay').update({
-                  flag: false
-                })
-                .then(() => {
-                  return [
-                    'Got it! Your cheat day updated: ' + messageText,
-                    utils.otherOptions(false)
-                  ]
-                })
-              })
-            })
-          }
+          // else if (cheatDay && messageText) {
+          //   return tempRef.child('/preferences/' + date).update({
+          //     cheatDay: messageText
+          //   })
+          //   .then(() => {
+          //     return tempRef.child('/preferences/').update({
+          //       currentCheatDay: messageText
+          //     })
+          //     .then(() => {
+          //       return tempRef.child('/temp/data/cheatDay').update({
+          //         flag: false
+          //       })
+          //       .then(() => {
+          //         return [
+          //           'Got it! Your cheat day updated: ' + messageText,
+          //           utils.otherOptions(false)
+          //         ]
+          //       })
+          //     })
+          //   })
+          // }
           else if (snapshot.child('/temp/data/food').val()) {
             const r1 = sentiment(messageText);
             if (r1) {
@@ -588,7 +588,12 @@ exports.bot = function(request, messageText, userId) {
 
           //   }
           // }
-          return nutrition.getNutritionix(messageText, userId, timezone, true)
+          else {
+            return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data").remove()
+            .then(function() {
+              return nutrition.getNutritionix(messageText, userId, timezone, true)
+            })
+          }
           // return [
           //   new fbTemplate
           //   .Image('http://i.imgur.com/uhHyYvP.gif')

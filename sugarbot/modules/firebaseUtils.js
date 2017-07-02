@@ -17,10 +17,10 @@ if (firebase.apps.length === 0) {
 }
 
 exports.trackSugar = function() {
-  let cheatDay = new Date(Date.now()).getDay()
-  if (cheatDay == 0) {
-    return 'Today is your cheat day! Enjoy responsibly 😇'
-  }
+  // let cheatDay = new Date(Date.now()).getDay()
+  // if (cheatDay == 0) {
+  //   return 'Today is your cheat day! Enjoy responsibly 😇'
+  // }
   return new fbTemplate.Button('Would you like to add it to your journal?')
   .addButton('Yes  ✅', 'add sugar')
   .addButton('No  ❌', 'remove temp food data')

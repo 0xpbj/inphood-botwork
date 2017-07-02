@@ -126,7 +126,7 @@ exports.otherOptions = function(option) {
       .addButton('Journal ✏️', 'journal')
       // .addButton('Send food image 🥗', 'send food picture')
       // .addButton('Knowledge 📚', 'knowledge')
-      .addButton('Report ‍💻', 'report')
+      .addButton('Report 💻', 'report')
       .addButton('Settings ⚙️', 'settings')
       .get();
   }

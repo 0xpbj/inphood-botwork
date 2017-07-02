@@ -76,18 +76,18 @@ exports.getNutritionix = function(messageText, userId, timezone, randomQuestion)
         console.log('*************************')
         console.log(food)
         if (foodSugar === 0) {
-          zeroSugar += '0 sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name +'\n'
+          zeroSugar += '    - 0g sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name +'\n'
           foodName += food_name + '\n'
         }
         else if (upc || nix_brand_name || nix_brand_id || nf_ingredient_statement || names.getNatural(food_name) == -1) {
           console.log('Processed', food_name)
           psugar += foodSugar
-          processedSugars += '    - ' + foodSugar + 'g sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + '\n'
+          processedSugars += '    - ' + foodSugar + 'g sugars in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + '\n'
           foodName += food_name + '\n'
         }
         else if (foodSugar) {
           nsugar += foodSugar
-          naturalSugars +=  '    - ' + foodSugar + 'g sugar in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + '\n'
+          naturalSugars +=  '    - ' + foodSugar + 'g natural sugars in ' + serving_qty + ' ' + serving_unit + ' of ' + food_name + '\n'
           foodName += food_name + '\n'
         }
         // thumb = photo.thumb ? photo.thumb : ''
@@ -99,15 +99,16 @@ exports.getNutritionix = function(messageText, userId, timezone, randomQuestion)
         }
         sugarArr.push(foodSugar)
       }
-      let sugarPerServingStr = 'That has about \n'
-      if (zeroSugar !== '') {
-        sugarPerServingStr += zeroSugar
+      let sugarPerServingStr = 'That has about ' + psugar + 'g of sugars. Here\'s a breakdown of your meal: \n'
+      if (processedSugars !== '') {
+        sugarPerServingStr += processedSugars
       }
       if (naturalSugars !== '') {
-        sugarPerServingStr += nsugar + 'g of natural sugars\n*NOTE* These sugars are not counted against your daily allotment.\nHere\'s a breakdown: ' + naturalSugars
+        sugarPerServingStr += '\n\n*NOTE* These sugars are not counted against your daily allotment.\n'
+        sugarPerServingStr += '  ' + nsugar + 'g of natural sugars\n' + naturalSugars
       }
-      if (processedSugars !== '') {
-        sugarPerServingStr += psugar + 'g of added sugars\n' + processedSugars
+      if (zeroSugar !== '') {
+        sugarPerServingStr += zeroSugar
       }
       // console.log('Amount of sugar: ', sugar)
       // console.log(sugarPerServingStr)
