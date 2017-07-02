@@ -161,7 +161,7 @@ exports.getNutritionix = function(messageText, userId, timezone, randomQuestion)
     return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/question").remove()
     .then(function() {
       if (randomQuestion) {
-        const excuse = require('huh')
+        // const excuse = require('huh')
         // return excuse.get('en') // Returns 1 random excuse
         return [
           // excuse.get('en'),

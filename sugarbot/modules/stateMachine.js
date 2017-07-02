@@ -568,18 +568,18 @@ exports.bot = function(request, messageText, userId) {
           //     })
           //   })
           // }
-          else if (snapshot.child('/temp/data/food').val()) {
-            const r1 = sentiment(messageText);
-            if (r1) {
-              return fire.addSugarToFirebase(userId, date, timestamp)
-            }
-            else {
-              return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
-              .then(function() {
-                return utils.otherOptions(false)
-              })
-            }
-          }
+          // else if (snapshot.child('/temp/data/food').val()) {
+          //   const r1 = sentiment(messageText);
+          //   if (r1) {
+          //     return fire.addSugarToFirebase(userId, date, timestamp)
+          //   }
+          //   else {
+          //     return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/food").remove()
+          //     .then(function() {
+          //       return utils.otherOptions(false)
+          //     })
+          //   }
+          // }
           // else if (manual) {
           //   const r1 = sentiment(messageText);
           //   if (r1) {
@@ -591,7 +591,7 @@ exports.bot = function(request, messageText, userId) {
           else {
             return firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data").remove()
             .then(function() {
-              return nutrition.getNutritionix(messageText, userId, timezone, true)
+              return nutrition.getNutritionix(messageText, userId, timezone, false)
             })
           }
           // return [
