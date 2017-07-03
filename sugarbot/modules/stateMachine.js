@@ -94,6 +94,8 @@ exports.bot = function(request, messageText, userId) {
           }
         }
         case 'debug_msgr_extensions': {
+          console.log('DEBUG MESSENGER EXTENSIONS IN WEBVIEW')
+          console.log('-------------------------------------------------------')
           const wvMsg = {
             uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
             json: true,
