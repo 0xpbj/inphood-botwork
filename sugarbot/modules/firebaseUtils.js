@@ -181,7 +181,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
           return [
             // 'Added ' + sugar + 'g to your journal',
             // 'Okay, I\'ve updated your journal and see that you\'ve had about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g) of your daily allowance (' + goalSugar + 'g)',
-            'Okay—you just ate about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g). I have updated your journal'
+            'Okay—you just ate about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g) of your goal: ' + goalSugar + 'g. I have updated your journal'
             // 'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
             // "Here's your daily intake",
             // 'With sugar less is more!',
@@ -232,7 +232,7 @@ exports.addSugarToFirebase = function(userId, date, fulldate) {
               // 'Added ' + sugar + 'g to your journal',
               // 'Okay, I\'ve updated your journal and see that you\'ve had about ' + Math.ceil(sugar*100/goalSugar) 
                // + '% (' + sugar + 'g) of your daily allowance (' + goalSugar + 'g)',
-              'Okay—you just ate about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g). I have updated your journal'
+              'Okay—you just ate about ' + Math.ceil(sugar*100/goalSugar) + '% (' + sugar + 'g) of your goal: ' + goalSugar + 'g. I have updated your journal'
               // 'Your current daily sugar intake is ' + newVal + 'g of ' + goalSugar + 'g',
               // "Here's your daily intake",
               // 'With sugar less is more!',
