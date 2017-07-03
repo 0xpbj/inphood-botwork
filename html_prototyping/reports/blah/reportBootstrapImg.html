@@ -202,6 +202,70 @@
           }, function(response){});
         }
       </script> -->
+
+      <!-- this will get the user id information
+        <script>
+        (function(d, s, id){
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) {return;}
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'Messenger'));
+        window.extAsyncInit = function() {
+          console.log('start of extension init')
+          // document.getElementById("share_button").onclick = function() {
+            console.log('button clicked')
+            var messageToShare = {
+              "attachment":{
+                 "type":"template",
+                 "payload":{
+                     "template_type":"generic",
+                     "elements": [{
+                         "title":"Sharing for facebook test",
+                         "image_url": "https://www.inphood.com/chatbotimages/sugar.jpg",
+                         "subtitle": "My Report",
+                         "default_action":{
+                             "type":"web_url",
+                             "url": "https://www.inphood.com/reports/1322516797796635/267733510.html"
+                         },
+                         "buttons":[{
+                             "type":"web_url",
+                             "url":"https://www.inphood.com/reports/1322516797796635/267733510.html",
+                             "title":"Share the content"
+                         }]
+                     }]
+                 }
+              }
+            };
+            console.log('extension init done')
+            MessengerExtensions.beginShareFlow(function success(response) {
+              // User dismissed without error, but did they
+              console.log('share flow started')
+              // share the message?
+              if(response.is_sent){
+                  // The user actually did share. 
+                // Perhaps close the window w/ requestCloseBrowser().
+              }else{
+                  
+              }
+            }, function error(errorCode, errorMessage) {      
+            // An error occurred in the process
+              
+            },
+            messageToShare,
+            "broadcast");
+            MessengerExtensions.getUserID(function success(uids) {
+              // User ID was successfully obtained. 
+              var psid = uids.psid;
+              console.log('User ID', psid)
+            }, function error(err, errorMessage) {      
+            // Error handling code
+            });    
+          // }
+        }
+      </script> -->
+
     </div>
   </body>
 </html>
