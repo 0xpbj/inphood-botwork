@@ -78,6 +78,14 @@ module.exports = botBuilder(function (request, originalApiRequest) {
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%in share')
       return utils.sendShareButton()
     }
+    else if (messageText === 'pbjdebug') {
+      return new fbTemplate.Generic()
+      .addBubble('sugarinfoAI 🕵️ ', 'Find and track (hidden) sugars in your diet')
+      .addUrl('https://www.inphood.com/report/testPbjFirebase.html')
+      .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/sugar.jpg')
+      .addShareButton()
+      .get()
+    }
     else {
       if (firebase.auth().currentUser) {
         return facebookMachine.bot(request, messageText, userId)
