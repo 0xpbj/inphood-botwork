@@ -3,18 +3,11 @@ const facebookMachine = require('./modules/stateMachine.js')
 const fbTemplate = botBuilder.fbTemplate
 const utils = require('./modules/utils.js')
 const fire = require('./modules/firebaseUtils.js')
+const constants = require('./modules/constants.js')
 
 const firebase = require('firebase')
-const fbConfig = {
-  apiKey: 'AIzaSyBQTHsQA5GuDG7Ttk17o3LBQfXjn7MtUQ8',
-  authDomain: 'inphooddb-e0dfd.firebaseapp.com',
-  databaseURL: 'https://inphooddb-e0dfd.firebaseio.com',
-  projectId: 'inphooddb-e0dfd',
-  storageBucket: 'inphooddb-e0dfd.appspot.com',
-  messagingSenderId: '529180412076'
-}
 if (firebase.apps.length === 0) {
-  firebase.initializeApp(fbConfig)
+  firebase.initializeApp(constants.fbConfig)
 }
 
 const bailArr = ['main menu', 'refresh', 'reset', 'start', 'hey', 'menu', '?', 'help', 'hi', 'hello', 'back', 'cancel', 'clear', 'exit', 'start']
