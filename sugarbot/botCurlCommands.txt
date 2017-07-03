@@ -7,7 +7,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
       "locale":"en_US",
       "text":"Your own virtual sugar expert!"
     }
-  ] 
+  ]
 }' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BAJaPLaqAsQe38FK2nToDDxB4PF7ddr28iHlgLEUWGd0JZCLOQxeJrSqED8o0DwE7U5zBrDblSGM2dha9k3STKk3iVOkfSBW2L5eeDe0ylyiCp1Vq50Ac4ZBdouD3p5rGtfVnjVh4YLtOsQDIgS7T1W10PCZBQZDZD"
 
 curl -X POST -H "Content-Type: application/json" -d '{
@@ -91,7 +91,8 @@ curl -X POST -H "Content-Type: application/json" -d '{
 // whitelisting a domain
 curl -X POST -H "Content-Type: application/json" -d '{
   "whitelisted_domains":[
-    "https://www.inphood.com"
+    "https://www.inphood.com",
+    "https://s3-us-west-1.amazonaws.com"
   ]
 }' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD"
 
