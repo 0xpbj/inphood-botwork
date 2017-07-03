@@ -2,6 +2,7 @@ const botBuilder = require('claudia-bot-builder');
 const fbTemplate = botBuilder.fbTemplate;
 const utils = require('./utils.js')
 const sugarUtils = require('../modules/sugarUtils.js')
+const nutrition = require ('../modules/nutritionix.js')
 
 const firebase = require('firebase')
 const fbConfig = {
@@ -32,27 +33,32 @@ exports.findMyFavorites = function(favoriteMeal, userId, date, fulldate) {
   let objRef = firebase.database().ref('/global/sugarinfoai/' + userId + '/myfoods/' + favoriteMeal + '/')
   return objRef.once("value")
   .then(function(snapshot) {
-    let sugarPerServing = snapshot.child('sugar').val()
-    let sugarPerServingStr = snapshot.child('sugarPerServingStr').val()
-    let ingredientsSugarsCaps = snapshot.child('ingredientsSugarsCaps').val()
-    console.log('results', sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
-    return firebase.database().ref('/global/sugarinfoai/' + userId + '/temp/data/favorites').remove()
-    .then(() => {
-      var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
-      let sugar = parseInt(sugarPerServing)
-      if (!ingredientsSugarsCaps)
-        ingredientsSugarsCaps = ''
-      return tempRef.child('food').set({
-        sugar: sugarPerServing,
-        foodName: favoriteMeal,
-        sugarPerServingStr,
-        cleanText: favoriteMeal,
-        ingredientsSugarsCaps
-      })
+    if (snapshot.exists()) {
+      let sugarPerServing = snapshot.child('sugar').val()
+      let sugarPerServingStr = snapshot.child('sugarPerServingStr').val()
+      let ingredientsSugarsCaps = snapshot.child('ingredientsSugarsCaps').val()
+      console.log('results', sugarPerServing, sugarPerServingStr, ingredientsSugarsCaps)
+      return firebase.database().ref('/global/sugarinfoai/' + userId + '/temp/data/favorites').remove()
       .then(() => {
-        return exports.addSugarToFirebase(userId, date, fulldate)
+        var tempRef = firebase.database().ref("/global/sugarinfoai/" + userId + "/temp/data/")
+        let sugar = parseInt(sugarPerServing)
+        if (!ingredientsSugarsCaps)
+          ingredientsSugarsCaps = ''
+        return tempRef.child('food').set({
+          sugar: sugarPerServing,
+          foodName: favoriteMeal,
+          sugarPerServingStr,
+          cleanText: favoriteMeal,
+          ingredientsSugarsCaps
+        })
+        .then(() => {
+          return exports.addSugarToFirebase(userId, date, fulldate)
+        })
       })
-    })
+    }
+    else {
+      return nutrition.getNutritionix(favoriteMeal, userId, '', false)
+    }
   })
   .catch(error => {
     console.log('Errors', error)
