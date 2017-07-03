@@ -81,7 +81,7 @@ module.exports = botBuilder(function (request, originalApiRequest) {
     else if (messageText === 'pbjdebug') {
       return new fbTemplate.Generic()
       .addBubble('sugarinfoAI 🕵️ ', 'Find and track (hidden) sugars in your diet')
-      .addUrl('https://www.inphood.com/report/testPbjFirebase.html')
+      .addUrl('https://s3-us-west-1.amazonaws.com/www.inphood.com/reports/test/testPbjFirebase.html')
       .addImage('https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/sugar.jpg')
       .addShareButton()
       .get()
