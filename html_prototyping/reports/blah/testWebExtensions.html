@@ -90,6 +90,13 @@
 
         window.extAsyncInit = function() {
           console.log('Messenger Extensions is done loading:')
+					MessengerExtensions.getUserID(function success(uids) {
+							console.log('User ID was successfully obtained.')
+							var psid = uids.psid;
+              document.getElementById('yourId').innerHTML = psid;
+					}, function error(err, errorMessage) {      
+							console.log('Unable to get the userID')
+					});
 //          // document.getElementById("share_button").onclick = function() {
 //            console.log('button clicked')
 //            var messageToShare = {
