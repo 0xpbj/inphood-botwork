@@ -93,8 +93,8 @@ exports.bot = function(request, messageText, userId) {
             ]
           }
         }
-        case 'debug_msgr_extensions': {
-          console.log('DEBUG MESSENGER EXTENSIONS IN WEBVIEW')
+        case 'debug_wv_settings': {
+          console.log('DEBUG WEBVIEW SETTINGS:')
           console.log('-------------------------------------------------------')
           const wvMsg = {
             uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
@@ -111,27 +111,17 @@ exports.bot = function(request, messageText, userId) {
                     "template_type":"generic",
                     "elements":[
                        {
-                        "title":"sugarinfoAI Daily Report",
+                        "title":"Settings",
                         "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                        "subtitle":userId + "'s sugar consumption through " + date,
+                        "subtitle":userId + "'s settings",
                         "default_action": {
                           "url": 'https://s3-us-west-1.amazonaws.com/www.inphood.com/reports/test/testWebExtensions.html',
                           "type": "web_url",
                           "messenger_extensions": true,
-                          "webview_height_ratio": "tall",
+                          "webview_height_ratio": "full",
+                          "webview_share_button": "hide",
                           "fallback_url": "https://www.inphood.com/"
-                        },
-                        "buttons":[
-                          {
-                            "url":'https://s3-us-west-1.amazonaws.com/www.inphood.com/reports/test/testWebExtensions.html',
-                            "type":"web_url",
-                            "title":"View Report",
-                            "webview_height_ratio": "tall"
-                          },
-                          {
-                            "type":"element_share"
-                          }
-                        ]
+                        }
                       }
                     ]
                   }
