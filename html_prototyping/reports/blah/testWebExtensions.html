@@ -7,16 +7,32 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <title>Sugar Report</title>
+    
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+          crossorigin="anonymous">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
     <!-- Bootstrap -->
-    <link href="../../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <!-- bootstrap ext libs -->
+    <script src="../../lib/bootstrap-number-input/bootstrap-number-input.js"></script>
+    <script src="../../lib/bootstrap-switch/bootstrap-switch.js"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css">
-
-    <!-- Material Design Bootstrap -->
-    <link href="../../lib/mdbootstrap/css/mdb.min.css" rel="stylesheet">
-    
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -24,52 +40,64 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <!--script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script-->
+    <script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
   </head>
   <body>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="../../lib/bootstrap/js/bootstrap.min.js"></script>
-    <!-- MDB core JavaScript -->
-    <script type="text/javascript" src="../../lib/mdbootstrap/js/mdb.min.js"></script>
+    <div class="container">
+      <form>
+        <fieldset>
 
-    <div>
-      <div>
+          <div class="form-group">
+            <div class="row">
+              <div class="col-xs-12 col-md-9">
+                <label class="control-label">Maximum sugar each day (grams)</label>
+              </div>
+              <div class="col-xs-12 col-md-3">
+                <input id="max-sugar" class="form-control" type="number" value="36" min="0" max="100"/>
+              </div>
+            </div>
+          </div>
 
-        <h3>Goals</h3>
-        <div class="input-group">
-          <span class="input-group-addon" id="max-sugar">Maximum daily sugar:</span>
-          <input type="text" class="form-control" placeholder="36" aria-describedby="max-sugar">
-          <span class="input-group-addon">grams</span>
+          <div class="form-group">
+            <div class="row">
+              <div class="col-xs-12 col-md-9">
+                <label class="control-label">My target weight (pounds)</label>
+              </div>
+              <div class="col-xs-12 col-md-3">
+                <input id="goal-weight" class="form-control" type="number" value="150" min="50" max="1000"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-xs-12 col-md-9">
+                <label class="control-label">My current weight (pounds)</label>
+              </div>
+              <div class="col-xs-12 col-md-3">
+                <input id="current-weight" class="form-control" type="number" value="150" min="50" max="1000"/>
+              </div>
+            </div>
+          </div>
+
+        </fieldset>
+      </form>
+
+      <div class="form-group">
+        <div class="row">
+          <div class="col-xs-8 col-md-9">
+            <label class="control-label">Nightly food journal summary</label>
+          </div>
+          <div class="col-xs-4 col-md-3">
+            <input id="nightly-summary" type="checkbox" name="checkbox1"/>
+          </div>
         </div>
-        <div class="input-group">
-          <span class="input-group-addon" id="target-weight">My target weight:</span>
-          <input type="text" class="form-control" placeholder="" aria-describedby="target-weight">
-          <span class="input-group-addon">pounds</span>
-        </div>
-        
-        <h3>Me</h3>
-        <div class="input-group">
-          <span class="input-group-addon" id="curent-weight">My current weight:</span>
-          <input type="text" class="form-control" placeholder="" aria-describedby="current-weight">
-          <span class="input-group-addon">pounds</span>
-        </div>
-
-        <h3>Notifications</h3>
-        <div class="dropdown">
-          <button class="btn btn-default dropdown-toggle" type="button" id="evening-report" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Food Journal Summary
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="evening-report">
-            <li><a href="#">On</a></li>
-            <li><a href="#">Off</a></li>
-          </ul>
-        </div>
-
-
       </div>
+        
+    </div>
+
+
+    </div>
       <h1>Messenger Extensions Test</h1>
       <h4>This is your userid: <span id="yourId">???</span></h4>
 
@@ -89,6 +117,20 @@
         });
       </script>
 
+      <!-- Code to create red/green number spinners -->
+      <script>
+$('.form-control').bootstrapNumber({
+upClass:'danger',
+downClass:'success',
+center:false
+});
+$("[name='checkbox1']").bootstrapSwitch({
+on: 'On',
+size: 'sm'
+});
+      </script>
+
+        
       <script>
         (function(d, s, id){
           var js, fjs = d.getElementsByTagName(s)[0];
