@@ -322,7 +322,7 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
       <meta name="viewport" content="width=device-width, initial-scale=1"> \
       <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags --> \
    \
-      <title>Sugar Report</title> \
+      <title>' + date + '</title> \
    \
       <!-- Bootstrap --> \
       <link href="../../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet"> \
@@ -346,12 +346,18 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script> \
       <![endif]--> \
     </head> \
-    <body>' + shareScript + msgrExtensionsScript + ' \
+    <body>' + msgrExtensionsScript + ' \
       <div style="padding-right: 10px; padding-left: 10px;"> \
-        <h3 class="text-center">' + date + '</h3> \
+        <div class="row"> \
+          <div class="col-xs-6 text-left"> \
+            <h3>Sugar Report</h3> \
+          </div> \
+          <div class="col-xs-6 text-right"> \
+            <div id="shareBtn" class="btn btn-primary clearfix">Share</div> \
+          </div> \
+        </div> \
    \
         ' + sectionSpacer + ' \
-        <div id="shareBtn" class="btn btn-success clearfix">Share</div> \
         <h4 class="text-left">Sugar Today (' + percentSugarToday + '% of maximum)</h4> \
         <div class="progress" style="height: ' + progBarHeight + ';"> \
         ' + sugarProgressBar + ' \
@@ -366,7 +372,7 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         ' + sugarConsumptionReport + ' \
    \
       </div> \
-    </body> \
+    </body>' + shareScript + ' \
   </html> '
 
   const now = new Date(Date.now())
