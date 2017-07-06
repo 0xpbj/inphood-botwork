@@ -21,6 +21,32 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         fjs.parentNode.insertBefore(js, fjs); \
       } (document, \'script\', \'Messenger\')); \
     </script>'
+  
+  const shareScript = ' \
+    <script> \
+      window.fbAsyncInit = function() { \
+        FB.init({ \
+          appId            : '669941103143805', \
+          autoLogAppEvents : true, \
+          xfbml            : true, \
+          version          : 'v2.9' \
+        }); \
+        FB.AppEvents.logPageView(); \
+      }; \
+      (function(d, s, id){ \
+         var js, fjs = d.getElementsByTagName(s)[0]; \
+         if (d.getElementById(id)) {return;} \
+         js = d.createElement(s); js.id = id; \
+         js.src = "//connect.facebook.net/en_US/sdk.js"; \
+         fjs.parentNode.insertBefore(js, fjs); \
+       }(document, "script", "facebook-jssdk")); \
+      document.getElementById("shareBtn").onclick = function() { \
+        FB.ui({ \
+          method: "share", \
+          href: "https://www.inphood.com/reports/1322516797796635/267733510.html", \
+        }, function(response){}); \
+      } \
+    </script>'
 
   // Create HTML for the reports we wish to see:
   // 1. (MVP) List of items for the day
@@ -320,12 +346,12 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script> \
       <![endif]--> \
     </head> \
-    <body>' +
-      msgrExtensionsScript + ' \
+    <body>' + shareScript + msgrExtensionsScript + ' \
       <div style="padding-right: 10px; padding-left: 10px;"> \
         <h3 class="text-center">' + date + '</h3> \
    \
         ' + sectionSpacer + ' \
+        <div id="shareBtn" class="btn btn-success clearfix">Share</div> \
         <h4 class="text-left">Sugar Today (' + percentSugarToday + '% of maximum)</h4> \
         <div class="progress" style="height: ' + progBarHeight + ';"> \
         ' + sugarProgressBar + ' \
@@ -333,11 +359,11 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
    \
         ' + sectionSpacer + ' \
         <h4 class="text-left">Sugar Journal</h4> \
-        ' + sugarConsumptionReport + ' \
+        ' + sugarHistoryChart + ' \
    \
         ' + sectionSpacer + ' \
         <h4 class="text-left">Sugar History</h4> \
-        ' + sugarHistoryChart + ' \
+        ' + sugarConsumptionReport + ' \
    \
       </div> \
     </body> \
