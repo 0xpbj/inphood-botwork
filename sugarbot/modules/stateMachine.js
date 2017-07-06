@@ -113,12 +113,12 @@ exports.bot = function(request, messageText, userId) {
                        {
                         "title":"Settings",
                         "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
-                        "subtitle":userId + "'s settings",
+                        "subtitle":"Webview settings",
                         "default_action": {
-                          "url": 'https://s3-us-west-1.amazonaws.com/www.inphood.com/reports/test/testWebExtensions.html',
+                          "url": 'https://s3-us-west-1.amazonaws.com/www.inphood.com/webviews/Settings.html',
                           "type": "web_url",
                           "messenger_extensions": true,
-                          "webview_height_ratio": "full",
+                          "webview_height_ratio": "tall",
                           "webview_share_button": "hide",
                           "fallback_url": "https://www.inphood.com/"
                         }
