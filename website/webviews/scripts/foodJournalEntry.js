@@ -25,6 +25,10 @@ function delBtn(targetId) {
 }
 
 function singleItemHtml(foodName, sugarTotal, photo) {
+  let deleteBtn = delBtnHtml('all');
+
+  console.log(deleteBtn);
+
   let html = ' \
     <div class="row"> \
       <div class="col-xs-9" style="padding-left: 5px"> \
@@ -33,7 +37,7 @@ function singleItemHtml(foodName, sugarTotal, photo) {
         </h4> \
       </div> \
       <div class="col-xs-3"> \
-        <script>' + delBtnHtml("all") + '</script> \
+        ' + deleteBtn + ' \
       </div> \
     </div> \
     <div class="row"> \
