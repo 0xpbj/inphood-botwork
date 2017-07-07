@@ -15,7 +15,7 @@ function delBtnHtml(targetId) {
     <button type="button" \
             class="btn btn-link pull-right" \
             style="color:red" \
-            onclick="deleteClicked(\'' + targetId + '\')">(delete)</button>';
+            onclick="deleteClicked(\'' + targetId + '\')">(remove)</button>';
 
   return html
 }
@@ -24,9 +24,69 @@ function delBtn(targetId) {
   document.write(delBtnHtml(targetId))
 }
 
+function singleItemHtml(foodName, sugarTotal, photo) {
+  let html = ' \
+    <div class="row"> \
+      <div class="col-xs-9" style="padding-left: 5px"> \
+        <h4> \
+          ' + foodName + ' \
+        </h4> \
+      </div> \
+      <div class="col-xs-3"> \
+        <script>' + delBtnHtml("all") + '</script> \
+      </div> \
+    </div> \
+    <div class="row"> \
+      <div class="col-xs-12" style="height:10px; border-top: 1px solid black"></div> \
+    </div> \
+    <div class="row"> \
+      <div class="col-xs-3" style="padding-left: 5px; padding-right: 5px" > \
+        <input class="form-control text-right" type="number" value="' + sugarTotal + '" min="0" max="100"/> \
+      </div> \
+      <div class="col-xs-6" style="padding-left:5px"> \
+        <label class="control-label">grams of sugars</label> \
+      </div> \
+      <div class="col-xs-3"> \
+        <img src="' + photo + '" class="pull-right" alt="food image" width="64" height="64"> \
+      </div> \
+    </div>';
+
+    return html;
+}
+
+
+var sugarIntakeRef;
+var sugarIntakeDict;
+var lastKey;
+
+function processValuesFromDb() {
+  logIt('processValuesFromDb');
+
+  if (sugarIntakeDict && lastKey) {
+    logIt('  non null sugarIntakeDict and lastKey');
+
+    const lastItem = sugarIntakeDict[lastKey];
+    const foodName = lastItem.foodName;
+    const sugarTotal = lastItem.sugar;
+    const photo = lastItem.photo[0];
+    
+    console.log('foodName: ' + foodName);
+    console.log('sugarTotal: ' + sugarTotal);
+    console.log('photo: ' + photo);
+    const html= singleItemHtml(foodName, sugarTotal, photo);
+    document.getElementById("elaborateMe").innerHTML=html;
+  }
+}
+
 function initPageValuesFromDb(userRef) {
   logIt('initPageValuesFromDb');
   logIt('-------------------------------');
+
+  let target = document.getElementById('foodEditor');
+  logIt(target);
+  spinner = new Spinner().spin(target);
+  logIt('spinner on');
+
 
   // Thoughts:
   //  - asking PBJ to set a 'last_key' in sugarIntake would save a lot of time
@@ -50,9 +110,9 @@ function initPageValuesFromDb(userRef) {
 
     // 2. Get current sugarIntake dict for user from date:
     //
-    let sugarIntakeRef = userRef.child('sugarIntake/' + userDateStr);
+    sugarIntakeRef = userRef.child('sugarIntake/' + userDateStr);
     sugarIntakeRef.once('value', function(intakeSnapshot) {
-      let sugarIntakeDict = intakeSnapshot.val();
+      sugarIntakeDict = intakeSnapshot.val();
       if (sugarIntakeDict) {
 
         // 3. Get the most recent item logged by the user today:
@@ -70,19 +130,22 @@ function initPageValuesFromDb(userRef) {
           return;
         }
 
-        const lastKey = keyArr[dictLength - 2]
+        lastKey = keyArr[dictLength - 2]
         if (lastKey === 'dailyTotal') {
           console.log('Unexpected error. Retrieved daily total from intake dictionary as last intake key.');
         }
 
         logIt('lastKey not dailyTotal = ' + lastKey);
-        const lastItem = sugarIntakeDict[lastKey];
-        const foodName = lastItem.foodName;
-        const photoArr = lastItem.photo;
-        const sugarTotal = lastItem.sugar;
-        const sugarArr = lastItem.sugarArr;
-
-        logIt('last food = ' + foodName);
+//        const lastItem = sugarIntakeDict[lastKey];
+//        const foodName = lastItem.foodName;
+//        const photoArr = lastItem.photo;
+//        const sugarTotal = lastItem.sugar;
+//        const sugarArr = lastItem.sugarArr;
+//
+//        logIt('last food = ' + foodName);
+        processValuesFromDb();
+        spinner.stop();
+        logIt('spinner off');
       } else {
         // TODO: page error
         logIt('sugarIntakeDict is null');

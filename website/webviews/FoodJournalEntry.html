@@ -32,6 +32,7 @@
 
     <!-- bootstrap ext libs -->
     <script src="lib/bootstrap-number-input/bootstrap-number-input.js"></script>
+    <script src="lib/spin.js.org/spin.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
   </head>
@@ -47,7 +48,7 @@
     <script src="scripts/dbConnection.js"></script>
 
 
-    <div class="container-fluid">
+    <div id="foodEditor" class="container-fluid">
 
       <!-- Single food example -->
       <div class="row">
@@ -202,7 +203,12 @@
         </div>
       </div>
 
+
     </div>
 
+    <div class="container" id="elaborateMe">
+    </div>
+
+    <script>testInit();</script>
   </body>
 </html> 
