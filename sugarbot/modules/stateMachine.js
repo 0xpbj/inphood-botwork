@@ -93,8 +93,14 @@ exports.bot = function(request, messageText, userId) {
             ]
           }
         }
+        case 'debug_wv_recent':
         case 'debug_wv_settings': {
-          console.log('DEBUG WEBVIEW SETTINGS:')
+          const isSettings = (messageText === 'debug_wv_settings')
+          const logTitle = isSettings ? 'Settings' : 'Recent'
+          const wvUrl = isSettings ?
+            'https://s3-us-west-1.amazonaws.com/www.inphood.com/webviews/Settings.html' :
+            'https://s3-us-west-1.amazonaws.com/www.inphood.com/webviews/FoodJournalEntry.html'
+          console.log('DEBUG WEBVIEW ' + logTitle + ':')
           console.log('-------------------------------------------------------')
           const wvMsg = {
             uri: 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAJhTtF5K30BABsLODz0w5Af5hvd1SN9TZCU0E9OapZCKuZAOMugO2bNDao8JDe8E3cPQrJGLWWfL0sMxsq4MSTcZBbgGEjqa68ggSZCmZAFhGsFPFkWGUlYwAZB2ZCOrPPgdxS612ck5Rv8SrHydJihKQGsPLQSc1yYtBkncIpbOgZDZD',
@@ -111,11 +117,11 @@ exports.bot = function(request, messageText, userId) {
                     "template_type":"generic",
                     "elements":[
                        {
-                        "title":"Settings",
+                        "title": logTitle,
                         "image_url":"https://d1q0ddz2y0icfw.cloudfront.net/chatbotimages/arrows.jpg",
                         "subtitle":"Webview settings",
                         "default_action": {
-                          "url": 'https://s3-us-west-1.amazonaws.com/www.inphood.com/webviews/Settings.html',
+                          "url": wvUrl,
                           "type": "web_url",
                           "messenger_extensions": true,
                           "webview_height_ratio": "tall",
