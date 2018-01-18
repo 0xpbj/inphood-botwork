@@ -1,8 +1,6 @@
 exports.writeReportToS3 = function(date, userId, snapshot) {
   const S3 = require('aws-sdk').S3
   const s3 = new S3({
-    accessKeyId:     'AKIAJQGBMJOHENSKGD4A',
-    secretAccessKey: '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',
     region: 'us-west-2',
   })
 
@@ -26,10 +24,6 @@ exports.writeReportToS3 = function(date, userId, snapshot) {
     <script> \
       window.fbAsyncInit = function() { \
         FB.init({ \
-          appId            : "669941103143805", \
-          autoLogAppEvents : true, \
-          xfbml            : true, \
-          version          : "v2.9" \
         }); \
         FB.AppEvents.logPageView(); \
       }; \
